@@ -89,6 +89,9 @@ export type Database = {
       }
       inspections: {
         Row: {
+          approval_observations: string | null
+          approved_at: string | null
+          approved_by: string | null
           codes_corrected: boolean | null
           created_at: string | null
           created_by: string
@@ -111,6 +114,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          approval_observations?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           codes_corrected?: boolean | null
           created_at?: string | null
           created_by: string
@@ -133,6 +139,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          approval_observations?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           codes_corrected?: boolean | null
           created_at?: string | null
           created_by?: string

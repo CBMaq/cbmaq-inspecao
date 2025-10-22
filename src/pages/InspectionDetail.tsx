@@ -335,13 +335,15 @@ export default function InspectionDetail() {
   };
 
   const handleApprove = async (observations: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
     const { error } = await supabase
       .from("inspections")
       .update({
         status: "aprovada",
-        general_observations: observations
-          ? `${inspection.general_observations || ""}\n\nObservações da Aprovação:\n${observations}`.trim()
-          : inspection.general_observations,
+        approved_by: user?.id,
+        approved_at: new Date().toISOString(),
+        approval_observations: observations,
       })
       .eq("id", id);
 
@@ -363,11 +365,15 @@ export default function InspectionDetail() {
   };
 
   const handleReject = async (observations: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
     const { error } = await supabase
       .from("inspections")
       .update({
         status: "reprovada",
-        general_observations: `${inspection.general_observations || ""}\n\nMotivo da Reprovação:\n${observations}`.trim(),
+        approved_by: user?.id,
+        approved_at: new Date().toISOString(),
+        approval_observations: observations,
       })
       .eq("id", id);
 
