@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { useToast } from "@/hooks/use-toast";
 import { Wrench } from "lucide-react";
 
@@ -43,41 +43,6 @@ export default function Auth() {
     setLoading(false);
   };
 
-  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const fullName = formData.get("fullName") as string;
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-        emailRedirectTo: `${window.location.origin}/`,
-      },
-    });
-
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao criar conta",
-        description: error.message,
-      });
-    } else {
-      toast({
-        title: "Conta criada com sucesso!",
-        description: "Você já pode fazer login.",
-      });
-    }
-
-    setLoading(false);
-  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
@@ -90,75 +55,30 @@ export default function Auth() {
           <CardDescription>Sistema de Inspeção Técnica</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Cadastro</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    name="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Senha</Label>
-                  <Input
-                    id="login-password"
-                    name="password"
-                    type="password"
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Entrando..." : "Entrar"}
-                </Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Nome Completo</Label>
-                  <Input
-                    id="signup-name"
-                    name="fullName"
-                    type="text"
-                    placeholder="Seu nome"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    name="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha</Label>
-                  <Input
-                    id="signup-password"
-                    name="password"
-                    type="password"
-                    required
-                    minLength={6}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Criando conta..." : "Criar Conta"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="login-email">Email</Label>
+              <Input
+                id="login-email"
+                name="email"
+                type="email"
+                placeholder="seu@email.com"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="login-password">Senha</Label>
+              <Input
+                id="login-password"
+                name="password"
+                type="password"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Entrando..." : "Entrar"}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
