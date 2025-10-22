@@ -182,12 +182,12 @@ const MachineCatalog = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {lineModels.map((model) => (
                           <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                            <div className="aspect-video relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+                            <div className="aspect-video relative bg-white dark:bg-slate-900">
                               {model.image_url ? (
                                 <MachineImage
                                   imageUrl={model.image_url}
                                   alt={model.name}
-                                  className="w-full h-full object-contain p-6"
+                                  className="p-8"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-muted-foreground">

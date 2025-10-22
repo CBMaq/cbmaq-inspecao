@@ -323,11 +323,11 @@ const CatalogManagement = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex gap-4">
                         {model.image_url && (
-                          <div className="w-24 h-24 rounded bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-2">
+                          <div className="w-24 h-24 rounded bg-white dark:bg-slate-900 flex items-center justify-center">
                             <MachineImage
                               imageUrl={model.image_url}
                               alt={model.name}
-                              className="w-full h-full object-contain"
+                              className="p-2"
                             />
                           </div>
                         )}
