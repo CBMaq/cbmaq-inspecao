@@ -9,9 +9,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
-import { ArrowLeft, Save, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Save, CheckCircle2, Camera } from "lucide-react";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PhotoUpload } from "@/components/PhotoUpload";
+import { SignaturePad } from "@/components/SignaturePad";
 
 interface InspectionData {
   id: string;
@@ -25,6 +27,12 @@ interface InspectionData {
   has_fault_codes: boolean;
   fault_codes_description: string | null;
   codes_corrected: boolean;
+  entry_signature: string | null;
+  entry_signature_date: string | null;
+  entry_technician_id: string | null;
+  exit_signature: string | null;
+  exit_signature_date: string | null;
+  exit_technician_id: string | null;
 }
 
 interface InspectionItem {
@@ -279,6 +287,38 @@ export default function InspectionDetail() {
     });
 
     setSaving(false);
+  };
+
+  const handleFinalize = async () => {
+    if (!inspection.entry_signature || !inspection.exit_signature) {
+      toast({
+        variant: "destructive",
+        title: "Assinaturas obrigatórias",
+        description: "É necessário ter as assinaturas de entrada e saída para finalizar.",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("inspections")
+      .update({ status: "finalizada" })
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao finalizar",
+        description: error.message,
+      });
+      return;
+    }
+
+    toast({
+      title: "Inspeção finalizada!",
+      description: "A inspeção foi concluída com sucesso.",
+    });
+
+    navigate("/");
   };
 
   if (loading) {
@@ -574,6 +614,125 @@ export default function InspectionDetail() {
               />
             </CardContent>
           </Card>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Camera className="h-5 w-5" />
+                Fotos do Equipamento
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <PhotoUpload
+                inspectionId={id!}
+                photoType="horimeter"
+                label="Horímetro"
+              />
+              <PhotoUpload
+                inspectionId={id!}
+                photoType="identification_plates"
+                label="Plaquetas de Identificação"
+              />
+              <PhotoUpload
+                inspectionId={id!}
+                photoType="engine"
+                label="Motor (Direito/Esquerdo)"
+              />
+              <PhotoUpload
+                inspectionId={id!}
+                photoType="front"
+                label="Frente"
+              />
+              <PhotoUpload
+                inspectionId={id!}
+                photoType="sides"
+                label="Laterais"
+              />
+              <PhotoUpload
+                inspectionId={id!}
+                photoType="rear"
+                label="Traseira"
+              />
+              <PhotoUpload
+                inspectionId={id!}
+                photoType="cabin"
+                label="Cabine"
+              />
+              <PhotoUpload
+                inspectionId={id!}
+                photoType="keys"
+                label="Chaves"
+              />
+              <PhotoUpload
+                inspectionId={id!}
+                photoType="toolbox"
+                label="Caixa de Ferramentas"
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Assinaturas Digitais</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <SignaturePad
+                label="Técnico Responsável pela Entrada"
+                existingSignature={inspection.entry_signature}
+                existingTechnicianId={inspection.entry_technician_id}
+                existingDate={inspection.entry_signature_date}
+                onSign={async (signature, technicianId, date) => {
+                  await supabase
+                    .from("inspections")
+                    .update({
+                      entry_signature: signature,
+                      entry_technician_id: technicianId,
+                      entry_signature_date: date,
+                    })
+                    .eq("id", id);
+                  
+                  setInspection({
+                    ...inspection,
+                    entry_signature: signature,
+                    entry_technician_id: technicianId,
+                    entry_signature_date: date,
+                  });
+
+                  toast({
+                    title: "Assinatura salva!",
+                  });
+                }}
+              />
+
+              <SignaturePad
+                label="Técnico Responsável pela Saída"
+                existingSignature={inspection.exit_signature}
+                existingTechnicianId={inspection.exit_technician_id}
+                existingDate={inspection.exit_signature_date}
+                onSign={async (signature, technicianId, date) => {
+                  await supabase
+                    .from("inspections")
+                    .update({
+                      exit_signature: signature,
+                      exit_technician_id: technicianId,
+                      exit_signature_date: date,
+                    })
+                    .eq("id", id);
+                  
+                  setInspection({
+                    ...inspection,
+                    exit_signature: signature,
+                    exit_technician_id: technicianId,
+                    exit_signature_date: date,
+                  });
+
+                  toast({
+                    title: "Assinatura salva!",
+                  });
+                }}
+              />
+            </CardContent>
+          </Card>
         </main>
 
         <div className="fixed bottom-0 left-0 right-0 border-t bg-card p-4 shadow-lg">
@@ -581,7 +740,7 @@ export default function InspectionDetail() {
             <Button variant="outline" onClick={() => navigate("/")}>
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button onClick={handleSave} disabled={saving || inspection.status === "finalizada"}>
               {saving ? (
                 <>
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
@@ -594,6 +753,16 @@ export default function InspectionDetail() {
                 </>
               )}
             </Button>
+            {inspection.status === "em_andamento" && (
+              <Button 
+                onClick={handleFinalize} 
+                disabled={saving}
+                className="bg-success hover:bg-success/90"
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Finalizar Inspeção
+              </Button>
+            )}
           </div>
         </div>
       </div>
