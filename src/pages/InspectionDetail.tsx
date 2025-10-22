@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
-import { ArrowLeft, Save, CheckCircle2, Camera, FileText } from "lucide-react";
+import { ArrowLeft, Save, CheckCircle2, Camera, FileText, XCircle } from "lucide-react";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -27,6 +27,8 @@ interface InspectionData {
   freight_responsible: string | null;
   status: "em_andamento" | "finalizada" | "aprovada" | "reprovada";
   general_observations: string | null;
+  approval_observations: string | null;
+  approved_at: string | null;
   has_fault_codes: boolean;
   fault_codes_description: string | null;
   codes_corrected: boolean;
@@ -444,6 +446,42 @@ export default function InspectionDetail() {
         </header>
 
         <main className="container mx-auto px-4 py-8 max-w-5xl">
+          {(inspection.status === "aprovada" || inspection.status === "reprovada") && (
+            <Card className="mb-6 border-2" style={{ borderColor: inspection.status === "aprovada" ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {inspection.status === "aprovada" ? (
+                    <>
+                      <CheckCircle2 className="h-5 w-5 text-success" />
+                      Inspeção Aprovada
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-5 w-5 text-destructive" />
+                      Inspeção Reprovada
+                    </>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <Label className="text-muted-foreground">Observações do Supervisor</Label>
+                  <p className="mt-1 whitespace-pre-wrap rounded-md bg-muted p-3">
+                    {inspection.approval_observations || "Sem observações"}
+                  </p>
+                </div>
+                {inspection.approved_at && (
+                  <div>
+                    <Label className="text-muted-foreground">Data da Revisão</Label>
+                    <p className="font-medium">
+                      {new Date(inspection.approved_at).toLocaleString("pt-BR")}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Dados do Equipamento</CardTitle>
