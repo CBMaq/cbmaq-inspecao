@@ -57,29 +57,32 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Get all profiles
+      // Buscar todos os perfis (admins podem ver)
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, full_name");
 
       if (profilesError) throw profilesError;
 
-      // Get all user roles
-      const { data: userRoles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id, role");
+      // Para cada perfil, verificar papel via RPC (bypass seguro de RLS)
+      const usersWithRoles: UserWithRole[] = await Promise.all(
+        (profiles || []).map(async (profile: any) => {
+          const [{ data: isAdmin }, { data: isSupervisor }] = await Promise.all([
+            supabase.rpc("has_role", { _user_id: profile.id, _role: "admin" }),
+            supabase.rpc("has_role", { _user_id: profile.id, _role: "supervisor" }),
+          ]);
 
-      if (rolesError) throw rolesError;
+          let role: string = "tecnico";
+          if (Boolean(isAdmin)) role = "admin";
+          else if (Boolean(isSupervisor)) role = "supervisor";
 
-      // Combine data
-      const usersWithRoles: UserWithRole[] = profiles?.map(profile => {
-        const userRole = userRoles?.find(r => r.user_id === profile.id);
-        return {
-          id: profile.id,
-          full_name: profile.full_name,
-          role: userRole?.role || "tecnico",
-        };
-      }) || [];
+          return {
+            id: profile.id,
+            full_name: profile.full_name,
+            role,
+          } as UserWithRole;
+        })
+      );
 
       setUsers(usersWithRoles);
     } catch (error) {
@@ -92,27 +95,17 @@ export default function UserManagement() {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      // Primeiro, verificar se já existe uma role para este usuário
-      const { data: existingRoles } = await supabase
+      // Evita SELECT (bloqueado por RLS). Apenas remove e insere novamente.
+      const { error: deleteError } = await supabase
         .from("user_roles")
-        .select("id")
-        .eq("user_id", userId)
-        .limit(1);
+        .delete()
+        .eq("user_id", userId);
 
-      if (existingRoles && existingRoles.length > 0) {
-        // Se existe, fazer UPDATE através de DELETE + INSERT para evitar problemas de constraint
-        const { error: deleteError } = await supabase
-          .from("user_roles")
-          .delete()
-          .eq("user_id", userId);
-
-        if (deleteError) {
-          console.error("Delete error:", deleteError);
-          throw deleteError;
-        }
+      if (deleteError) {
+        console.error("Delete error:", deleteError);
+        throw deleteError;
       }
 
-      // Inserir nova role
       const { error: insertError } = await supabase
         .from("user_roles")
         .insert([{ user_id: userId, role: newRole as any }]);

@@ -46,40 +46,26 @@ export function NewUserDialog({ onUserCreated }: NewUserDialogProps) {
         return;
       }
 
-      // Criar usuário
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-          },
+      // Criar usuário via função de backend (evita trocar a sessão atual)
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-create-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token || ""}`,
         },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          fullName: formData.fullName,
+          role: formData.role,
+        }),
       });
 
-      if (authError) throw authError;
-
-      if (!authData.user) {
-        throw new Error("Erro ao criar usuário");
-      }
-
-      // Aguardar um pouco para garantir que o trigger criou o perfil e role padrão
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Atualizar role se não for técnico
-      if (formData.role !== "tecnico") {
-        const { error: deleteError } = await supabase
-          .from("user_roles")
-          .delete()
-          .eq("user_id", authData.user.id);
-
-        if (deleteError) throw deleteError;
-
-        const { error: insertError } = await supabase
-          .from("user_roles")
-          .insert([{ user_id: authData.user.id, role: formData.role as any }]);
-
-        if (insertError) throw insertError;
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err?.error || "Erro ao criar usuário");
       }
 
       toast.success("Usuário criado com sucesso");
