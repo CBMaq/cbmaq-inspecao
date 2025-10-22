@@ -151,7 +151,7 @@ const MachineCatalog = () => {
             </CardContent>
           </Card>
 
-          {/* Grid de Máquinas */}
+          {/* Grid de Máquinas Agrupadas por Linha */}
           {loading ? (
             <div className="text-center py-12">Carregando catálogo...</div>
           ) : filteredModels.length === 0 ? (
@@ -163,44 +163,62 @@ const MachineCatalog = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredModels.map((model) => (
-                <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-video bg-gradient-to-br from-background to-muted relative">
-                    {model.image_url ? (
-                      <img
-                        src={model.image_url}
-                        alt={model.name}
-                        className="w-full h-full object-contain p-4"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        Sem imagem
+            <div className="space-y-8">
+              {uniqueLines
+                .filter(line => filteredModels.some(m => m.line === line))
+                .map((line) => {
+                  const lineModels = filteredModels.filter(m => m.line === line);
+                  const lineCategories = Array.from(new Set(lineModels.map(m => m.category)));
+                  
+                  return (
+                    <div key={line}>
+                      <div className="mb-4">
+                        <h2 className="text-2xl font-bold mb-1">{line}</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Categorias: {lineCategories.join(", ")}
+                        </p>
                       </div>
-                    )}
-                  </div>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{model.name}</CardTitle>
-                    <CardDescription>
-                      <div className="space-y-1">
-                        <div>Linha: {model.line}</div>
-                        <div>Categoria: {model.category}</div>
-                        {model.internal_code && (
-                          <div className="text-xs">Código: {model.internal_code}</div>
-                        )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {lineModels.map((model) => (
+                          <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                            <div className="aspect-video bg-gradient-to-br from-background to-muted relative">
+                              {model.image_url ? (
+                                <img
+                                  src={model.image_url}
+                                  alt={model.name}
+                                  className="w-full h-full object-contain p-4"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                  Sem imagem
+                                </div>
+                              )}
+                            </div>
+                            <CardHeader>
+                              <CardTitle className="text-lg">{model.name}</CardTitle>
+                              <CardDescription>
+                                <div className="space-y-1">
+                                  <div>Categoria: {model.category}</div>
+                                  {model.internal_code && (
+                                    <div className="text-xs">Código: {model.internal_code}</div>
+                                  )}
+                                </div>
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <Button
+                                onClick={() => handleSelectModel(model.id)}
+                                className="w-full"
+                              >
+                                Selecionar para Inspeção
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button
-                      onClick={() => handleSelectModel(model.id)}
-                      className="w-full"
-                    >
-                      Selecionar para Inspeção
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                    </div>
+                  );
+                })}
             </div>
           )}
         </div>
