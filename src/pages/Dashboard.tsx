@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
-import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, AlertCircle } from "lucide-react";
+import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, AlertCircle, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
 
@@ -126,6 +126,12 @@ export default function Dashboard() {
                     )}
                   </div>
                 </div>
+              )}
+              {userRoles.includes('admin') && (
+                <Button variant="outline" size="sm" onClick={() => navigate("/admin/usuarios")}>
+                  <Shield className="h-4 w-4 mr-2" />
+                  Gestão
+                </Button>
               )}
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
