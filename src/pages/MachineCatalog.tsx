@@ -166,12 +166,12 @@ const MachineCatalog = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredModels.map((model) => (
                 <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-video bg-muted relative">
+                  <div className="aspect-video bg-gradient-to-br from-background to-muted relative">
                     {model.image_url ? (
                       <img
                         src={model.image_url}
                         alt={model.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain p-4"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-muted-foreground">
