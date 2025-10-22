@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Shield, User } from "lucide-react";
 import { NewUserDialog } from "@/components/NewUserDialog";
+import { ResetPasswordDialog } from "@/components/ResetPasswordDialog";
 
 interface UserWithRole {
   id: string;
@@ -198,6 +199,7 @@ export default function UserManagement() {
                     <TableHead>Nome</TableHead>
                     <TableHead>Papel Atual</TableHead>
                     <TableHead>Alterar Papel</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -223,6 +225,12 @@ export default function UserManagement() {
                             <SelectItem value="admin">Administrador</SelectItem>
                           </SelectContent>
                         </Select>
+                      </TableCell>
+                      <TableCell>
+                        <ResetPasswordDialog 
+                          userId={user.id} 
+                          userName={user.full_name}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
