@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [userName, setUserName] = useState<string>("");
+  const [userRoles, setUserRoles] = useState<string[]>([]);
 
   useEffect(() => {
     fetchInspections();
@@ -44,6 +45,16 @@ export default function Dashboard() {
       
       if (profile) {
         setUserName(profile.full_name);
+      }
+
+      // Fetch user roles from new secure table
+      const { data: rolesData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      
+      if (rolesData) {
+        setUserRoles(rolesData.map((r: any) => r.role));
       }
     }
   };
@@ -99,7 +110,21 @@ export default function Dashboard() {
               {userName && (
                 <div className="hidden sm:flex items-center gap-2 text-sm">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{userName}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{userName}</span>
+                    {userRoles.length > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        {userRoles.map(r => {
+                          const labels: Record<string, string> = {
+                            admin: 'Admin',
+                            supervisor: 'Supervisor',
+                            tecnico: 'Técnico'
+                          };
+                          return labels[r] || r;
+                        }).join(', ')}
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
               <Button variant="outline" size="sm" onClick={handleLogout}>

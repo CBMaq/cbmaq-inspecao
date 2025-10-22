@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Wrench } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -52,7 +51,6 @@ export default function Auth() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const fullName = formData.get("fullName") as string;
-    const role = formData.get("role") as string;
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -60,7 +58,6 @@ export default function Auth() {
       options: {
         data: {
           full_name: fullName,
-          role: role,
         },
         emailRedirectTo: `${window.location.origin}/`,
       },
@@ -135,19 +132,6 @@ export default function Auth() {
                     placeholder="Seu nome"
                     required
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-role">Função</Label>
-                  <Select name="role" defaultValue="tecnico" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione sua função" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="tecnico">Técnico</SelectItem>
-                      <SelectItem value="supervisor">Supervisor</SelectItem>
-                      <SelectItem value="admin">Administrador</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
