@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
-import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, AlertCircle, Shield } from "lucide-react";
+import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, AlertCircle, Shield, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
 
@@ -126,6 +126,12 @@ export default function Dashboard() {
                     )}
                   </div>
                 </div>
+              )}
+              {(userRoles.includes('supervisor') || userRoles.includes('admin')) && (
+                <Button variant="outline" size="sm" onClick={() => navigate("/relatorios")}>
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Relatórios
+                </Button>
               )}
               {userRoles.includes('admin') && (
                 <Button variant="outline" size="sm" onClick={() => navigate("/admin/usuarios")}>
