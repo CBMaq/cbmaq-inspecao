@@ -109,6 +109,7 @@ export type Database = {
           id: string
           inspection_date: string
           model: string
+          model_id: string | null
           serial_number: string
           status: string
           updated_at: string | null
@@ -134,6 +135,7 @@ export type Database = {
           id?: string
           inspection_date?: string
           model: string
+          model_id?: string | null
           serial_number: string
           status?: string
           updated_at?: string | null
@@ -159,9 +161,63 @@ export type Database = {
           id?: string
           inspection_date?: string
           model?: string
+          model_id?: string | null
           serial_number?: string
           status?: string
           updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "machine_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      machine_models: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          gallery_images: string[] | null
+          id: string
+          image_url: string | null
+          internal_code: string | null
+          line: string
+          name: string
+          source_url: string | null
+          technical_sheet_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          image_url?: string | null
+          internal_code?: string | null
+          line: string
+          name: string
+          source_url?: string | null
+          technical_sheet_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          image_url?: string | null
+          internal_code?: string | null
+          line?: string
+          name?: string
+          source_url?: string | null
+          technical_sheet_url?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

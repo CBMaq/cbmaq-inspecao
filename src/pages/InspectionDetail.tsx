@@ -208,7 +208,15 @@ export default function InspectionDetail() {
     
     const { data: inspectionData, error: inspectionError } = await supabase
       .from("inspections")
-      .select("*")
+      .select(`
+        *,
+        machine_models (
+          name,
+          image_url,
+          category,
+          line
+        )
+      `)
       .eq("id", id)
       .single();
 

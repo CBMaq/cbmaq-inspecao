@@ -21,6 +21,12 @@ interface InspectionData {
   exit_signature: string | null;
   exit_signature_date: string | null;
   exit_technician_id: string | null;
+  machine_models?: {
+    name: string;
+    image_url: string | null;
+    category: string;
+    line: string;
+  } | null;
 }
 
 interface InspectionItem {
@@ -76,9 +82,22 @@ export function PDFExport({ inspection, items, disabled }: PDFExportProps) {
     doc.line(20, 32, 190, 32);
     
     // Dados do Equipamento
+    let yPosition = 42;
+    
+    // Adicionar imagem do modelo se disponível
+    if (inspection.machine_models?.image_url) {
+      try {
+        doc.addImage(inspection.machine_models.image_url, "JPEG", 20, yPosition, 50, 35);
+        yPosition += 40;
+      } catch (error) {
+        console.error("Erro ao adicionar imagem:", error);
+      }
+    }
+    
     doc.setFontSize(14);
     doc.setTextColor(51, 51, 51);
-    doc.text("Dados do Equipamento", 20, 42);
+    doc.text("Dados do Equipamento", 20, yPosition);
+    yPosition += 3;
     
     doc.setFontSize(10);
     const equipmentData = [
@@ -89,12 +108,17 @@ export function PDFExport({ inspection, items, disabled }: PDFExportProps) {
       ["Status", STATUS_LABELS[inspection.status] || inspection.status],
     ];
     
+    if (inspection.machine_models) {
+      equipmentData.push(["Linha", inspection.machine_models.line]);
+      equipmentData.push(["Categoria", inspection.machine_models.category]);
+    }
+    
     if (inspection.freight_responsible) {
       equipmentData.push(["Responsável Frete", inspection.freight_responsible]);
     }
     
     autoTable(doc, {
-      startY: 45,
+      startY: yPosition,
       head: [],
       body: equipmentData,
       theme: "plain",
@@ -104,7 +128,7 @@ export function PDFExport({ inspection, items, disabled }: PDFExportProps) {
       },
     });
     
-    let yPosition = (doc as any).lastAutoTable.finalY + 10;
+    yPosition = (doc as any).lastAutoTable.finalY + 10;
     
     // Códigos de Falhas
     if (inspection.has_fault_codes) {

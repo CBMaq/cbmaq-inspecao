@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
-import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, AlertCircle, Shield, BarChart3 } from "lucide-react";
+import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, AlertCircle, Shield, BarChart3, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
@@ -128,6 +128,10 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
+              <Button variant="outline" size="sm" onClick={() => navigate("/catalogo")}>
+                <BookOpen className="h-4 w-4 mr-2" />
+                Catálogo
+              </Button>
               {(userRoles.includes('supervisor') || userRoles.includes('admin')) && (
                 <Button variant="outline" size="sm" onClick={() => navigate("/relatorios")}>
                   <BarChart3 className="h-4 w-4 mr-2" />
@@ -135,10 +139,16 @@ export default function Dashboard() {
                 </Button>
               )}
               {userRoles.includes('admin') && (
-                <Button variant="outline" size="sm" onClick={() => navigate("/admin/usuarios")}>
-                  <Shield className="h-4 w-4 mr-2" />
-                  Gestão
-                </Button>
+                <>
+                  <Button variant="outline" size="sm" onClick={() => navigate("/admin/catalogo")}>
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Gerenciar Catálogo
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => navigate("/admin/usuarios")}>
+                    <Shield className="h-4 w-4 mr-2" />
+                    Gestão
+                  </Button>
+                </>
               )}
               <ChangePasswordDialog />
               <Button variant="outline" size="sm" onClick={handleLogout}>
