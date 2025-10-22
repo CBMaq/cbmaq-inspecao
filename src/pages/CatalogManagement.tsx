@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
+import { MachineImage } from "@/components/MachineImage";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface MachineModel {
@@ -322,11 +323,13 @@ const CatalogManagement = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex gap-4">
                         {model.image_url && (
-                          <img
-                            src={model.image_url}
-                            alt={model.name}
-                            className="w-24 h-24 object-cover rounded"
-                          />
+                          <div className="w-24 h-24 rounded bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-2">
+                            <MachineImage
+                              imageUrl={model.image_url}
+                              alt={model.name}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
                         )}
                         <div>
                           <CardTitle>{model.name}</CardTitle>

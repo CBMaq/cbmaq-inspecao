@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
+import { MachineImage } from "@/components/MachineImage";
 
 interface MachineModel {
   id: string;
@@ -181,12 +182,12 @@ const MachineCatalog = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {lineModels.map((model) => (
                           <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                            <div className="aspect-video bg-gradient-to-br from-background to-muted relative">
+                            <div className="aspect-video relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
                               {model.image_url ? (
-                                <img
-                                  src={model.image_url}
+                                <MachineImage
+                                  imageUrl={model.image_url}
                                   alt={model.name}
-                                  className="w-full h-full object-contain p-4"
+                                  className="w-full h-full object-contain p-6"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-muted-foreground">
