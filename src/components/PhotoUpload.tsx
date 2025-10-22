@@ -16,6 +16,7 @@ interface PhotoUploadProps {
 export function PhotoUpload({ inspectionId, photoType, label, onPhotoUploaded }: PhotoUploadProps) {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,9 +46,12 @@ export function PhotoUpload({ inspectionId, photoType, label, onPhotoUploaded }:
     if (!files || files.length === 0) return;
 
     setUploading(true);
+    setUploadProgress(0);
+    const totalFiles = files.length;
 
     try {
-      for (const file of Array.from(files)) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
         const fileExt = file.name.split(".").pop();
         const fileName = `${inspectionId}/${photoType}/${Math.random()}.${fileExt}`;
         
@@ -72,10 +76,12 @@ export function PhotoUpload({ inspectionId, photoType, label, onPhotoUploaded }:
         if (dbError) throw dbError;
 
         setPhotos((prev) => [...prev, publicUrl]);
+        setUploadProgress(Math.round(((i + 1) / totalFiles) * 100));
       }
 
       toast({
-        title: "Fotos enviadas com sucesso!",
+        title: "Fotos enviadas!",
+        description: `${files.length} foto(s) adicionada(s) com sucesso.`,
       });
 
       if (onPhotoUploaded) onPhotoUploaded();
@@ -88,6 +94,7 @@ export function PhotoUpload({ inspectionId, photoType, label, onPhotoUploaded }:
       });
     } finally {
       setUploading(false);
+      setUploadProgress(0);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
@@ -135,8 +142,17 @@ export function PhotoUpload({ inspectionId, photoType, label, onPhotoUploaded }:
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
         >
-          <Upload className="mr-2 h-4 w-4" />
-          {uploading ? "Enviando..." : "Adicionar Fotos"}
+          {uploading ? (
+            <>
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              {uploadProgress}%
+            </>
+          ) : (
+            <>
+              <Upload className="mr-2 h-4 w-4" />
+              Adicionar Fotos
+            </>
+          )}
         </Button>
         <input
           ref={fileInputRef}

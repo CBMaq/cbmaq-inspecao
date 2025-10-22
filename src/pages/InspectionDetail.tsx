@@ -9,11 +9,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
-import { ArrowLeft, Save, CheckCircle2, Camera } from "lucide-react";
+import { ArrowLeft, Save, CheckCircle2, Camera, FileText } from "lucide-react";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { SignaturePad } from "@/components/SignaturePad";
+import { PDFExport } from "@/components/PDFExport";
+import { ApprovalDialog } from "@/components/ApprovalDialog";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface InspectionData {
   id: string;
@@ -175,12 +178,30 @@ export default function InspectionDetail() {
   const [saving, setSaving] = useState(false);
   const [inspection, setInspection] = useState<InspectionData | null>(null);
   const [items, setItems] = useState<InspectionItem[]>([]);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [confirmFinalizeOpen, setConfirmFinalizeOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchInspection();
+      fetchUserRoles();
     }
   }, [id]);
+
+  const fetchUserRoles = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: rolesData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      
+      if (rolesData) {
+        setUserRoles(rolesData.map((r: any) => r.role));
+      }
+    }
+  };
 
   const fetchInspection = async () => {
     setLoading(true);
@@ -242,51 +263,43 @@ export default function InspectionDetail() {
   const handleSave = async () => {
     setSaving(true);
 
-    // Salvar itens de inspeção
-    const { error: deleteError } = await supabase
-      .from("inspection_items")
-      .delete()
-      .eq("inspection_id", id);
+    try {
+      // Salvar itens de inspeção
+      const { error: deleteError } = await supabase
+        .from("inspection_items")
+        .delete()
+        .eq("inspection_id", id);
 
-    if (deleteError) {
+      if (deleteError) throw deleteError;
+
+      const itemsToInsert = items.map((item) => ({
+        inspection_id: id,
+        category: item.category,
+        item_description: item.item_description,
+        entry_status: item.entry_status,
+        exit_status: item.exit_status,
+        problem_description: item.problem_description,
+      }));
+
+      const { error: insertError } = await supabase
+        .from("inspection_items")
+        .insert(itemsToInsert);
+
+      if (insertError) throw insertError;
+
+      toast({
+        title: "Salvo com sucesso!",
+        description: "As informações foram atualizadas.",
+      });
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro ao salvar",
-        description: deleteError.message,
+        description: error.message,
       });
+    } finally {
       setSaving(false);
-      return;
     }
-
-    const itemsToInsert = items.map((item) => ({
-      inspection_id: id,
-      category: item.category,
-      item_description: item.item_description,
-      entry_status: item.entry_status,
-      exit_status: item.exit_status,
-      problem_description: item.problem_description,
-    }));
-
-    const { error: insertError } = await supabase
-      .from("inspection_items")
-      .insert(itemsToInsert);
-
-    if (insertError) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao salvar",
-        description: insertError.message,
-      });
-      setSaving(false);
-      return;
-    }
-
-    toast({
-      title: "Salvo com sucesso!",
-      description: "As informações foram atualizadas.",
-    });
-
-    setSaving(false);
   };
 
   const handleFinalize = async () => {
@@ -315,10 +328,65 @@ export default function InspectionDetail() {
 
     toast({
       title: "Inspeção finalizada!",
-      description: "A inspeção foi concluída com sucesso.",
+      description: "A inspeção foi concluída e aguarda aprovação.",
     });
 
-    navigate("/");
+    await fetchInspection();
+  };
+
+  const handleApprove = async (observations: string) => {
+    const { error } = await supabase
+      .from("inspections")
+      .update({
+        status: "aprovada",
+        general_observations: observations
+          ? `${inspection.general_observations || ""}\n\nObservações da Aprovação:\n${observations}`.trim()
+          : inspection.general_observations,
+      })
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao aprovar",
+        description: error.message,
+      });
+      throw error;
+    }
+
+    toast({
+      title: "Inspeção aprovada!",
+      description: "A inspeção foi aprovada com sucesso.",
+    });
+
+    await fetchInspection();
+  };
+
+  const handleReject = async (observations: string) => {
+    const { error } = await supabase
+      .from("inspections")
+      .update({
+        status: "reprovada",
+        general_observations: `${inspection.general_observations || ""}\n\nMotivo da Reprovação:\n${observations}`.trim(),
+      })
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao reprovar",
+        description: error.message,
+      });
+      throw error;
+    }
+
+    toast({
+      variant: "destructive",
+      title: "Inspeção reprovada",
+      description: "A inspeção foi reprovada.",
+    });
+
+    await fetchInspection();
   };
 
   if (loading) {
@@ -756,35 +824,71 @@ export default function InspectionDetail() {
         </main>
 
         <div className="fixed bottom-0 left-0 right-0 border-t bg-card p-4 shadow-lg">
-          <div className="container mx-auto flex justify-end gap-3 max-w-5xl">
-            <Button variant="outline" onClick={() => navigate("/")}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSave} disabled={saving || inspection.status === "finalizada"}>
-              {saving ? (
+          <div className="container mx-auto flex justify-between items-center gap-3 max-w-5xl">
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => navigate("/")}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </Button>
+              {inspection.status !== "em_andamento" && (
+                <PDFExport inspection={inspection} items={items} />
+              )}
+            </div>
+            <div className="flex gap-3">
+              {inspection.status === "em_andamento" && (
                 <>
-                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Inspeção
+                  <Button onClick={handleSave} disabled={saving}>
+                    {saving ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                        Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Salvar
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    onClick={() => setConfirmFinalizeOpen(true)}
+                    disabled={saving}
+                    className="bg-success hover:bg-success/90"
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Finalizar
+                  </Button>
                 </>
               )}
-            </Button>
-            {inspection.status === "em_andamento" && (
-              <Button 
-                onClick={handleFinalize} 
-                disabled={saving}
-                className="bg-success hover:bg-success/90"
-              >
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Finalizar Inspeção
-              </Button>
-            )}
+              {inspection.status === "finalizada" && 
+               (userRoles.includes("supervisor") || userRoles.includes("admin")) && (
+                <Button 
+                  onClick={() => setApprovalDialogOpen(true)}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Revisar Inspeção
+                </Button>
+              )}
+            </div>
           </div>
         </div>
+
+        <ApprovalDialog
+          open={approvalDialogOpen}
+          onOpenChange={setApprovalDialogOpen}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
+
+        <ConfirmDialog
+          open={confirmFinalizeOpen}
+          onOpenChange={setConfirmFinalizeOpen}
+          onConfirm={handleFinalize}
+          title="Finalizar Inspeção"
+          description="Tem certeza que deseja finalizar esta inspeção? Após finalizada, ela não poderá mais ser editada e aguardará aprovação."
+          confirmText="Finalizar"
+        />
       </div>
     </AuthGuard>
   );

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
-import { Plus, Search, LogOut, FileText, User } from "lucide-react";
+import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
 
@@ -145,6 +145,61 @@ export default function Dashboard() {
               <Plus className="mr-2 h-5 w-5" />
               Nova Inspeção
             </Button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Em Andamento</p>
+                    <p className="text-3xl font-bold">
+                      {inspections.filter(i => i.status === "em_andamento").length}
+                    </p>
+                  </div>
+                  <Clock className="h-8 w-8 text-primary" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Finalizadas</p>
+                    <p className="text-3xl font-bold">
+                      {inspections.filter(i => i.status === "finalizada").length}
+                    </p>
+                  </div>
+                  <AlertCircle className="h-8 w-8 text-warning" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Aprovadas</p>
+                    <p className="text-3xl font-bold">
+                      {inspections.filter(i => i.status === "aprovada").length}
+                    </p>
+                  </div>
+                  <CheckCircle2 className="h-8 w-8 text-success" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Reprovadas</p>
+                    <p className="text-3xl font-bold">
+                      {inspections.filter(i => i.status === "reprovada").length}
+                    </p>
+                  </div>
+                  <XCircle className="h-8 w-8 text-destructive" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <Card className="mb-6">
