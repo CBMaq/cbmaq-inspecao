@@ -693,10 +693,20 @@ export default function InspectionDetail() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Camera className="h-5 w-5" />
-                Fotos do Equipamento
+                Fotos da Inspeção
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              <PhotoUpload
+                inspectionId={id!}
+                photoType="machine_entry"
+                label="Máquina na Entrada"
+              />
+              <PhotoUpload
+                inspectionId={id!}
+                photoType="machine_exit"
+                label="Máquina na Saída"
+              />
               <PhotoUpload
                 inspectionId={id!}
                 photoType="horimeter"
@@ -836,7 +846,9 @@ export default function InspectionDetail() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar
               </Button>
-              {inspection.status !== "em_andamento" && (
+              {(inspection.status === "finalizada" || 
+                inspection.status === "aprovada" || 
+                inspection.status === "reprovada") && (
                 <PDFExport inspection={inspection} items={items} />
               )}
             </div>

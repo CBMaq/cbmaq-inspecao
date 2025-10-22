@@ -153,10 +153,12 @@ export default function Dashboard() {
               <h2 className="text-3xl font-bold">Inspeções</h2>
               <p className="text-muted-foreground">Gerencie as inspeções técnicas</p>
             </div>
-            <Button onClick={() => navigate("/nova-inspecao")} size="lg">
-              <Plus className="mr-2 h-5 w-5" />
-              Nova Inspeção
-            </Button>
+            {userRoles.includes('admin') && (
+              <Button onClick={() => navigate("/nova-inspecao")} size="lg">
+                <Plus className="mr-2 h-5 w-5" />
+                Nova Inspeção
+              </Button>
+            )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
@@ -257,9 +259,9 @@ export default function Dashboard() {
                 <p className="text-muted-foreground mb-4">
                   {searchTerm || statusFilter !== "all"
                     ? "Tente ajustar os filtros de busca"
-                    : "Comece criando sua primeira inspeção"}
+                    : "Nenhuma inspeção cadastrada ainda"}
                 </p>
-                {!searchTerm && statusFilter === "all" && (
+                {!searchTerm && statusFilter === "all" && userRoles.includes('admin') && (
                   <Button onClick={() => navigate("/nova-inspecao")}>
                     <Plus className="mr-2 h-4 w-4" />
                     Nova Inspeção
