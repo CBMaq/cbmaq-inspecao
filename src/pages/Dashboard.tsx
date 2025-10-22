@@ -9,6 +9,7 @@ import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
 import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, AlertCircle, Shield, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
+import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 
 interface Inspection {
   id: string;
@@ -139,6 +140,7 @@ export default function Dashboard() {
                   Gestão
                 </Button>
               )}
+              <ChangePasswordDialog />
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
