@@ -104,6 +104,23 @@ export function SignaturePad({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Verificar se há desenho no canvas
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const hasDrawing = imageData.data.some(channel => channel !== 0);
+    
+    if (!hasDrawing) {
+      alert("Por favor, desenhe sua assinatura antes de salvar.");
+      return;
+    }
+
+    if (!technicianId.trim()) {
+      alert("Por favor, informe o ID do técnico.");
+      return;
+    }
+
     const signatureData = canvas.toDataURL("image/png");
     setSignature(signatureData);
     onSign(signatureData, technicianId, signatureDate);
@@ -183,15 +200,16 @@ export function SignaturePad({
             />
           </div>
 
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={clearSignature}>
+          <div className="flex gap-2 flex-wrap">
+            <Button type="button" variant="outline" onClick={clearSignature} className="flex-1">
               <X className="mr-2 h-4 w-4" />
               Limpar
             </Button>
             <Button
               type="button"
               onClick={saveSignature}
-              disabled={!technicianId}
+              disabled={!technicianId.trim()}
+              className="flex-1"
             >
               <Pen className="mr-2 h-4 w-4" />
               Salvar Assinatura

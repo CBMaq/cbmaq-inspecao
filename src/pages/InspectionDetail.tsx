@@ -682,7 +682,7 @@ export default function InspectionDetail() {
                 existingTechnicianId={inspection.entry_technician_id}
                 existingDate={inspection.entry_signature_date}
                 onSign={async (signature, technicianId, date) => {
-                  await supabase
+                  const { error } = await supabase
                     .from("inspections")
                     .update({
                       entry_signature: signature,
@@ -690,6 +690,15 @@ export default function InspectionDetail() {
                       entry_signature_date: date,
                     })
                     .eq("id", id);
+                  
+                  if (error) {
+                    toast({
+                      variant: "destructive",
+                      title: "Erro ao salvar assinatura",
+                      description: error.message,
+                    });
+                    return;
+                  }
                   
                   setInspection({
                     ...inspection,
@@ -699,7 +708,8 @@ export default function InspectionDetail() {
                   });
 
                   toast({
-                    title: "Assinatura salva!",
+                    title: "Assinatura de entrada salva!",
+                    description: "A assinatura foi registrada com sucesso.",
                   });
                 }}
               />
@@ -710,7 +720,7 @@ export default function InspectionDetail() {
                 existingTechnicianId={inspection.exit_technician_id}
                 existingDate={inspection.exit_signature_date}
                 onSign={async (signature, technicianId, date) => {
-                  await supabase
+                  const { error } = await supabase
                     .from("inspections")
                     .update({
                       exit_signature: signature,
@@ -718,6 +728,15 @@ export default function InspectionDetail() {
                       exit_signature_date: date,
                     })
                     .eq("id", id);
+                  
+                  if (error) {
+                    toast({
+                      variant: "destructive",
+                      title: "Erro ao salvar assinatura",
+                      description: error.message,
+                    });
+                    return;
+                  }
                   
                   setInspection({
                     ...inspection,
@@ -727,7 +746,8 @@ export default function InspectionDetail() {
                   });
 
                   toast({
-                    title: "Assinatura salva!",
+                    title: "Assinatura de saída salva!",
+                    description: "A assinatura foi registrada com sucesso.",
                   });
                 }}
               />
