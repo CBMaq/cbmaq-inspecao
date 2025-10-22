@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Shield, User } from "lucide-react";
+import { NewUserDialog } from "@/components/NewUserDialog";
 
 interface UserWithRole {
   id: string;
@@ -91,26 +92,41 @@ export default function UserManagement() {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      // Delete existing role
-      const { error: deleteError } = await supabase
+      // Primeiro, verificar se já existe uma role para este usuário
+      const { data: existingRoles } = await supabase
         .from("user_roles")
-        .delete()
-        .eq("user_id", userId);
+        .select("id")
+        .eq("user_id", userId)
+        .limit(1);
 
-      if (deleteError) throw deleteError;
+      if (existingRoles && existingRoles.length > 0) {
+        // Se existe, fazer UPDATE através de DELETE + INSERT para evitar problemas de constraint
+        const { error: deleteError } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", userId);
 
-      // Insert new role
+        if (deleteError) {
+          console.error("Delete error:", deleteError);
+          throw deleteError;
+        }
+      }
+
+      // Inserir nova role
       const { error: insertError } = await supabase
         .from("user_roles")
         .insert([{ user_id: userId, role: newRole as any }]);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        throw insertError;
+      }
 
       toast.success("Papel atualizado com sucesso");
-      fetchUsers();
-    } catch (error) {
+      await fetchUsers();
+    } catch (error: any) {
       console.error("Error updating role:", error);
-      toast.error("Erro ao atualizar papel do usuário");
+      toast.error(error.message || "Erro ao atualizar papel do usuário");
     }
   };
 
@@ -162,10 +178,15 @@ export default function UserManagement() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Usuários do Sistema</CardTitle>
-            <CardDescription>
-              Atribua papéis aos usuários para controlar suas permissões
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Usuários do Sistema</CardTitle>
+                <CardDescription>
+                  Atribua papéis aos usuários para controlar suas permissões
+                </CardDescription>
+              </div>
+              <NewUserDialog onUserCreated={fetchUsers} />
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
