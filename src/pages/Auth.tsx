@@ -46,7 +46,7 @@ export default function Auth() {
 
   return (
     <div 
-      className="flex min-h-screen items-center justify-start p-8 md:p-16 relative"
+      className="flex min-h-screen items-center justify-center p-8 md:p-16 relative"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
