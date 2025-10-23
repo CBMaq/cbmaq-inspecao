@@ -50,7 +50,7 @@ export default function Auth() {
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
-        backgroundPosition: '65% center',
+        backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat',
         imageRendering: 'crisp-edges'
       }}
