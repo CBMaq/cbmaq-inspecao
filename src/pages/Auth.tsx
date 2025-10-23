@@ -55,8 +55,8 @@ export default function Auth() {
         imageRendering: 'crisp-edges'
       }}
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent" />
-      <Card className="w-full max-w-md shadow-2xl relative z-10 bg-background/60 backdrop-blur-md border border-white/20">
+      <div className="absolute inset-0 bg-black/20" />
+      <Card className="w-full max-w-md shadow-2xl relative z-10 bg-background/30 backdrop-blur-sm border border-white/30">
         <CardHeader className="space-y-3 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary">
             <Wrench className="h-8 w-8 text-primary-foreground" />
