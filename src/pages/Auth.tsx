@@ -46,16 +46,17 @@ export default function Auth() {
 
   return (
     <div 
-      className="flex min-h-screen items-center justify-center p-4 relative"
+      className="flex min-h-screen items-center justify-start p-8 md:p-16 relative"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
+        imageRendering: 'crisp-edges'
       }}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-      <Card className="w-full max-w-md shadow-2xl relative z-10 bg-background/95 backdrop-blur-sm">
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+      <Card className="w-full max-w-md shadow-2xl relative z-10 bg-background/98 backdrop-blur-md border-2">
         <CardHeader className="space-y-3 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary">
             <Wrench className="h-8 w-8 text-primary-foreground" />
