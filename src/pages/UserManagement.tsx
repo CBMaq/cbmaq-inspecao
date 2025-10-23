@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Shield, User } from "lucide-react";
 import { NewUserDialog } from "@/components/NewUserDialog";
 import { ResetPasswordDialog } from "@/components/ResetPasswordDialog";
+import { TechnicianManagement } from "@/components/TechnicianManagement";
 
 interface UserWithRole {
   id: string;
@@ -239,6 +240,8 @@ export default function UserManagement() {
             )}
           </CardContent>
         </Card>
+
+        <TechnicianManagement />
 
         <Card>
           <CardHeader>

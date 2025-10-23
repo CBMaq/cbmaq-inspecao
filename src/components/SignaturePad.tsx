@@ -3,14 +3,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Pen } from "lucide-react";
+
+interface Technician {
+  id: string;
+  name: string;
+}
 
 interface SignaturePadProps {
   label: string;
-  onSign: (signature: string, technicianId: string, date: string) => void;
+  onSign: (signature: string, technicianId: string, technicianName: string, date: string) => void;
   existingSignature?: string | null;
   existingTechnicianId?: string | null;
+  existingTechnicianName?: string | null;
   existingDate?: string | null;
+  technicians: Technician[];
 }
 
 export function SignaturePad({
@@ -18,12 +26,15 @@ export function SignaturePad({
   onSign,
   existingSignature,
   existingTechnicianId,
+  existingTechnicianName,
   existingDate,
+  technicians,
 }: SignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [signature, setSignature] = useState<string | null>(existingSignature || null);
   const [technicianId, setTechnicianId] = useState(existingTechnicianId || "");
+  const [technicianName, setTechnicianName] = useState(existingTechnicianName || "");
   const [signatureDate, setSignatureDate] = useState(
     existingDate || new Date().toISOString().split("T")[0]
   );
@@ -117,13 +128,13 @@ export function SignaturePad({
     }
 
     if (!technicianId.trim()) {
-      alert("Por favor, informe o ID do técnico.");
+      alert("Por favor, selecione um técnico.");
       return;
     }
 
     const signatureData = canvas.toDataURL("image/png");
     setSignature(signatureData);
-    onSign(signatureData, technicianId, signatureDate);
+    onSign(signatureData, technicianId, technicianName, signatureDate);
   };
 
   if (signature) {
@@ -145,7 +156,7 @@ export function SignaturePad({
             </div>
             <img src={signature} alt="Assinatura" className="border rounded max-w-full" />
             <div className="text-sm text-muted-foreground">
-              <p>Técnico ID: {technicianId}</p>
+              <p>Técnico: {technicianName} ({technicianId})</p>
               <p>Data: {new Date(signatureDate).toLocaleDateString("pt-BR")}</p>
             </div>
           </div>
@@ -162,13 +173,28 @@ export function SignaturePad({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="technician-id">ID do Técnico</Label>
-              <Input
-                id="technician-id"
+              <Label htmlFor="technician-select">Selecione o Técnico</Label>
+              <Select
                 value={technicianId}
-                onChange={(e) => setTechnicianId(e.target.value)}
-                placeholder="Digite o ID"
-              />
+                onValueChange={(value) => {
+                  setTechnicianId(value);
+                  const selectedTech = technicians.find(t => t.id === value);
+                  if (selectedTech) {
+                    setTechnicianName(selectedTech.name);
+                  }
+                }}
+              >
+                <SelectTrigger id="technician-select">
+                  <SelectValue placeholder="Escolha um técnico" />
+                </SelectTrigger>
+                <SelectContent>
+                  {technicians.map((tech) => (
+                    <SelectItem key={tech.id} value={tech.id}>
+                      {tech.name} ({tech.id})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

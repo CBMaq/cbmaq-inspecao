@@ -98,9 +98,11 @@ export type Database = {
           entry_signature: string | null
           entry_signature_date: string | null
           entry_technician_id: string | null
+          entry_technician_name: string | null
           exit_signature: string | null
           exit_signature_date: string | null
           exit_technician_id: string | null
+          exit_technician_name: string | null
           fault_codes_description: string | null
           freight_responsible: string | null
           general_observations: string | null
@@ -124,9 +126,11 @@ export type Database = {
           entry_signature?: string | null
           entry_signature_date?: string | null
           entry_technician_id?: string | null
+          entry_technician_name?: string | null
           exit_signature?: string | null
           exit_signature_date?: string | null
           exit_technician_id?: string | null
+          exit_technician_name?: string | null
           fault_codes_description?: string | null
           freight_responsible?: string | null
           general_observations?: string | null
@@ -150,9 +154,11 @@ export type Database = {
           entry_signature?: string | null
           entry_signature_date?: string | null
           entry_technician_id?: string | null
+          entry_technician_name?: string | null
           exit_signature?: string | null
           exit_signature_date?: string | null
           exit_technician_id?: string | null
+          exit_technician_name?: string | null
           fault_codes_description?: string | null
           freight_responsible?: string | null
           general_observations?: string | null
@@ -239,6 +245,30 @@ export type Database = {
           full_name?: string
           id?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      technicians: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          name: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

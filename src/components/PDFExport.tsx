@@ -18,9 +18,11 @@ interface InspectionData {
   entry_signature: string | null;
   entry_signature_date: string | null;
   entry_technician_id: string | null;
+  entry_technician_name: string | null;
   exit_signature: string | null;
   exit_signature_date: string | null;
   exit_technician_id: string | null;
+  exit_technician_name: string | null;
   machine_models?: {
     name: string;
     image_url: string | null;
@@ -237,6 +239,8 @@ export function PDFExport({ inspection, items, disabled }: PDFExportProps) {
       }
       
       doc.setFontSize(9);
+      doc.text(`Técnico: ${inspection.entry_technician_name || "N/A"}`, 20, yPosition);
+      yPosition += 4;
       doc.text(`ID: ${inspection.entry_technician_id || "N/A"}`, 20, yPosition);
       yPosition += 4;
       doc.text(
@@ -258,6 +262,8 @@ export function PDFExport({ inspection, items, disabled }: PDFExportProps) {
       }
       
       doc.setFontSize(9);
+      doc.text(`Técnico: ${inspection.exit_technician_name || "N/A"}`, 20, yPosition);
+      yPosition += 4;
       doc.text(`ID: ${inspection.exit_technician_id || "N/A"}`, 20, yPosition);
       yPosition += 4;
       doc.text(

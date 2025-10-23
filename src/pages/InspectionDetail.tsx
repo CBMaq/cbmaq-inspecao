@@ -35,9 +35,11 @@ interface InspectionData {
   entry_signature: string | null;
   entry_signature_date: string | null;
   entry_technician_id: string | null;
+  entry_technician_name: string | null;
   exit_signature: string | null;
   exit_signature_date: string | null;
   exit_technician_id: string | null;
+  exit_technician_name: string | null;
 }
 
 interface InspectionItem {
@@ -183,11 +185,13 @@ export default function InspectionDetail() {
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [confirmFinalizeOpen, setConfirmFinalizeOpen] = useState(false);
+  const [technicians, setTechnicians] = useState<Array<{ id: string; name: string }>>([]);
 
   useEffect(() => {
     if (id) {
       fetchInspection();
       fetchUserRoles();
+      fetchTechnicians();
     }
   }, [id]);
 
@@ -202,6 +206,17 @@ export default function InspectionDetail() {
       if (rolesData) {
         setUserRoles(rolesData.map((r: any) => r.role));
       }
+    }
+  };
+
+  const fetchTechnicians = async () => {
+    const { data, error } = await supabase
+      .from("technicians")
+      .select("id, name")
+      .order("name");
+    
+    if (!error && data) {
+      setTechnicians(data);
     }
   };
 
@@ -810,13 +825,16 @@ export default function InspectionDetail() {
                 label="Técnico Responsável pela Entrada"
                 existingSignature={inspection.entry_signature}
                 existingTechnicianId={inspection.entry_technician_id}
+                existingTechnicianName={inspection.entry_technician_name}
                 existingDate={inspection.entry_signature_date}
-                onSign={async (signature, technicianId, date) => {
+                technicians={technicians}
+                onSign={async (signature, technicianId, technicianName, date) => {
                   const { error } = await supabase
                     .from("inspections")
                     .update({
                       entry_signature: signature,
                       entry_technician_id: technicianId,
+                      entry_technician_name: technicianName,
                       entry_signature_date: date,
                     })
                     .eq("id", id);
@@ -834,6 +852,7 @@ export default function InspectionDetail() {
                     ...inspection,
                     entry_signature: signature,
                     entry_technician_id: technicianId,
+                    entry_technician_name: technicianName,
                     entry_signature_date: date,
                   });
 
@@ -848,13 +867,16 @@ export default function InspectionDetail() {
                 label="Técnico Responsável pela Saída"
                 existingSignature={inspection.exit_signature}
                 existingTechnicianId={inspection.exit_technician_id}
+                existingTechnicianName={inspection.exit_technician_name}
                 existingDate={inspection.exit_signature_date}
-                onSign={async (signature, technicianId, date) => {
+                technicians={technicians}
+                onSign={async (signature, technicianId, technicianName, date) => {
                   const { error } = await supabase
                     .from("inspections")
                     .update({
                       exit_signature: signature,
                       exit_technician_id: technicianId,
+                      exit_technician_name: technicianName,
                       exit_signature_date: date,
                     })
                     .eq("id", id);
@@ -872,6 +894,7 @@ export default function InspectionDetail() {
                     ...inspection,
                     exit_signature: signature,
                     exit_technician_id: technicianId,
+                    exit_technician_name: technicianName,
                     exit_signature_date: date,
                   });
 
