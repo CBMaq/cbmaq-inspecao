@@ -95,6 +95,10 @@ export type Database = {
           codes_corrected: boolean | null
           created_at: string | null
           created_by: string
+          driver_documents_url: string | null
+          driver_name: string | null
+          driver_signature: string | null
+          driver_signature_date: string | null
           entry_signature: string | null
           entry_signature_date: string | null
           entry_technician_id: string | null
@@ -123,6 +127,10 @@ export type Database = {
           codes_corrected?: boolean | null
           created_at?: string | null
           created_by: string
+          driver_documents_url?: string | null
+          driver_name?: string | null
+          driver_signature?: string | null
+          driver_signature_date?: string | null
           entry_signature?: string | null
           entry_signature_date?: string | null
           entry_technician_id?: string | null
@@ -151,6 +159,10 @@ export type Database = {
           codes_corrected?: boolean | null
           created_at?: string | null
           created_by?: string
+          driver_documents_url?: string | null
+          driver_name?: string | null
+          driver_signature?: string | null
+          driver_signature_date?: string | null
           entry_signature?: string | null
           entry_signature_date?: string | null
           entry_technician_id?: string | null

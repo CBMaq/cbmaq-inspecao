@@ -17,6 +17,8 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { PDFExport } from "@/components/PDFExport";
 import { ApprovalDialog } from "@/components/ApprovalDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { DriverDocumentUpload } from "@/components/DriverDocumentUpload";
+import { Input } from "@/components/ui/input";
 
 interface InspectionData {
   id: string;
@@ -40,6 +42,10 @@ interface InspectionData {
   exit_signature_date: string | null;
   exit_technician_id: string | null;
   exit_technician_name: string | null;
+  driver_documents_url: string | null;
+  driver_signature: string | null;
+  driver_signature_date: string | null;
+  driver_name: string | null;
 }
 
 interface InspectionItem {
@@ -818,7 +824,80 @@ export default function InspectionDetail() {
 
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Assinaturas Digitais</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Informações do Motorista
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="driver_name">Nome do Motorista</Label>
+                <Input
+                  id="driver_name"
+                  value={inspection.driver_name || ""}
+                  onChange={(e) =>
+                    setInspection({ ...inspection, driver_name: e.target.value })
+                  }
+                  onBlur={async (e) => {
+                    await supabase
+                      .from("inspections")
+                      .update({ driver_name: e.target.value })
+                      .eq("id", id);
+                  }}
+                  placeholder="Digite o nome do motorista"
+                />
+              </div>
+
+              <DriverDocumentUpload
+                inspectionId={id!}
+                existingDocumentUrl={inspection.driver_documents_url}
+                onUploadComplete={fetchInspection}
+              />
+
+              <SignaturePad
+                label="Assinatura do Motorista"
+                existingSignature={inspection.driver_signature}
+                existingTechnicianId={null}
+                existingTechnicianName={inspection.driver_name}
+                existingDate={inspection.driver_signature_date}
+                technicians={[]}
+                hideTechnicianSelection={true}
+                onSign={async (signature, _technicianId, _technicianName, date) => {
+                  const { error } = await supabase
+                    .from("inspections")
+                    .update({
+                      driver_signature: signature,
+                      driver_signature_date: date,
+                    })
+                    .eq("id", id);
+                  
+                  if (error) {
+                    toast({
+                      variant: "destructive",
+                      title: "Erro ao salvar assinatura",
+                      description: error.message,
+                    });
+                    return;
+                  }
+                  
+                  setInspection({
+                    ...inspection,
+                    driver_signature: signature,
+                    driver_signature_date: date,
+                  });
+
+                  toast({
+                    title: "Assinatura do motorista salva!",
+                    description: "A assinatura foi registrada com sucesso.",
+                  });
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Assinaturas Digitais dos Técnicos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <SignaturePad

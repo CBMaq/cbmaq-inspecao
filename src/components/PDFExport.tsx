@@ -23,6 +23,10 @@ interface InspectionData {
   exit_signature_date: string | null;
   exit_technician_id: string | null;
   exit_technician_name: string | null;
+  driver_documents_url: string | null;
+  driver_signature: string | null;
+  driver_signature_date: string | null;
+  driver_name: string | null;
   machine_models?: {
     name: string;
     image_url: string | null;
@@ -271,6 +275,38 @@ export function PDFExport({ inspection, items, disabled }: PDFExportProps) {
         20,
         yPosition
       );
+      yPosition += 10;
+    }
+    
+    // Assinatura do Motorista
+    if (inspection.driver_signature && inspection.driver_name) {
+      if (yPosition > 240) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      doc.setFontSize(10);
+      doc.text("Assinatura do Motorista:", 20, yPosition);
+      yPosition += 5;
+      
+      if (inspection.driver_signature.startsWith("data:image")) {
+        doc.addImage(inspection.driver_signature, "PNG", 20, yPosition, 60, 20);
+        yPosition += 25;
+      }
+      
+      doc.setFontSize(9);
+      doc.text(`Motorista: ${inspection.driver_name}`, 20, yPosition);
+      yPosition += 4;
+      doc.text(
+        `Data: ${inspection.driver_signature_date ? new Date(inspection.driver_signature_date).toLocaleDateString("pt-BR") : "N/A"}`,
+        20,
+        yPosition
+      );
+      yPosition += 4;
+      
+      if (inspection.driver_documents_url) {
+        doc.text("Documento do motorista anexado", 20, yPosition);
+      }
     }
     
     // Rodapé

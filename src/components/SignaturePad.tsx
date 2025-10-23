@@ -19,6 +19,7 @@ interface SignaturePadProps {
   existingTechnicianName?: string | null;
   existingDate?: string | null;
   technicians: Technician[];
+  hideTechnicianSelection?: boolean;
 }
 
 export function SignaturePad({
@@ -29,6 +30,7 @@ export function SignaturePad({
   existingTechnicianName,
   existingDate,
   technicians,
+  hideTechnicianSelection = false,
 }: SignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -127,14 +129,14 @@ export function SignaturePad({
       return;
     }
 
-    if (!technicianId.trim()) {
+    if (!hideTechnicianSelection && !technicianId.trim()) {
       alert("Por favor, selecione um técnico.");
       return;
     }
 
     const signatureData = canvas.toDataURL("image/png");
     setSignature(signatureData);
-    onSign(signatureData, technicianId, technicianName, signatureDate);
+    onSign(signatureData, technicianId, technicianName || "Motorista", signatureDate);
   };
 
   if (signature) {
@@ -156,7 +158,12 @@ export function SignaturePad({
             </div>
             <img src={signature} alt="Assinatura" className="border rounded max-w-full" />
             <div className="text-sm text-muted-foreground">
-              <p>Técnico: {technicianName} ({technicianId})</p>
+              {!hideTechnicianSelection && (
+                <p>Técnico: {technicianName} ({technicianId})</p>
+              )}
+              {hideTechnicianSelection && technicianName && (
+                <p>Assinado por: {technicianName}</p>
+              )}
               <p>Data: {new Date(signatureDate).toLocaleDateString("pt-BR")}</p>
             </div>
           </div>
@@ -171,32 +178,46 @@ export function SignaturePad({
         <div className="space-y-4">
           <Label className="font-semibold">{label}</Label>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="technician-select">Selecione o Técnico</Label>
-              <Select
-                value={technicianId}
-                onValueChange={(value) => {
-                  setTechnicianId(value);
-                  const selectedTech = technicians.find(t => t.id === value);
-                  if (selectedTech) {
-                    setTechnicianName(selectedTech.name);
-                  }
-                }}
-              >
-                <SelectTrigger id="technician-select">
-                  <SelectValue placeholder="Escolha um técnico" />
-                </SelectTrigger>
-                <SelectContent>
-                  {technicians.map((tech) => (
-                    <SelectItem key={tech.id} value={tech.id}>
-                      {tech.name} ({tech.id})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {!hideTechnicianSelection && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="technician-select">Selecione o Técnico</Label>
+                <Select
+                  value={technicianId}
+                  onValueChange={(value) => {
+                    setTechnicianId(value);
+                    const selectedTech = technicians.find(t => t.id === value);
+                    if (selectedTech) {
+                      setTechnicianName(selectedTech.name);
+                    }
+                  }}
+                >
+                  <SelectTrigger id="technician-select">
+                    <SelectValue placeholder="Escolha um técnico" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {technicians.map((tech) => (
+                      <SelectItem key={tech.id} value={tech.id}>
+                        {tech.name} ({tech.id})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="signature-date">Data</Label>
+                <Input
+                  id="signature-date"
+                  type="date"
+                  value={signatureDate}
+                  onChange={(e) => setSignatureDate(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {hideTechnicianSelection && (
             <div className="space-y-2">
               <Label htmlFor="signature-date">Data</Label>
               <Input
@@ -206,7 +227,7 @@ export function SignaturePad({
                 onChange={(e) => setSignatureDate(e.target.value)}
               />
             </div>
-          </div>
+          )}
 
           <div>
             <Label className="mb-2 block">Desenhe sua assinatura</Label>
@@ -234,7 +255,7 @@ export function SignaturePad({
             <Button
               type="button"
               onClick={saveSignature}
-              disabled={!technicianId.trim()}
+              disabled={!hideTechnicianSelection && !technicianId.trim()}
               className="flex-1"
             >
               <Pen className="mr-2 h-4 w-4" />
