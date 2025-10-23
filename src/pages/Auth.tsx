@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { useToast } from "@/hooks/use-toast";
 import { Wrench } from "lucide-react";
+import backgroundImage from "@/assets/cbmaq-background.png";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -45,8 +45,17 @@ export default function Auth() {
 
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
-      <Card className="w-full max-w-md shadow-xl">
+    <div 
+      className="flex min-h-screen items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <Card className="w-full max-w-md shadow-2xl relative z-10 bg-background/95 backdrop-blur-sm">
         <CardHeader className="space-y-3 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary">
             <Wrench className="h-8 w-8 text-primary-foreground" />
