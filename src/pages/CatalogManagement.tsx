@@ -322,15 +322,13 @@ const CatalogManagement = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="image_url">Imagem Principal</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="image_url"
-                        type="url"
-                        value={formData.image_url}
-                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                        placeholder="ou faça upload abaixo"
-                      />
-                    </div>
+                    <Input
+                      id="image_url"
+                      type="url"
+                      value={formData.image_url}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      placeholder="Cole a URL ou faça upload abaixo"
+                    />
                     <div className="flex items-center gap-2">
                       <Input
                         id="image_file"
