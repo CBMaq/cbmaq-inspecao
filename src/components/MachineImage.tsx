@@ -19,6 +19,8 @@ export function MachineImage({ imageUrl, alt, className = "" }: MachineImageProp
       <img
         src={imageUrl}
         alt={alt}
+        loading="lazy"
+        decoding="async"
         onLoad={() => setLoaded(true)}
         className={`w-full h-full object-contain ${loaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
         style={{

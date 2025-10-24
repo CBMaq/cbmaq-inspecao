@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
 import { MachineImage } from "@/components/MachineImage";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { processImageForCatalog, sanitizeFileName } from "@/lib/imageProcessing";
 
 interface MachineModel {
   id: string;
@@ -192,24 +193,35 @@ const CatalogManagement = () => {
 
     setUploadingImage(true);
     try {
-      const fileName = `${Date.now()}-${file.name.toLowerCase().replace(/\s+/g, '-')}`;
+      // Padroniza a imagem (resize/compress + remove metadados) antes do upload
+      const processed = await processImageForCatalog(file, {
+        maxWidth: 1600,
+        maxHeight: 1200,
+        quality: 0.85,
+      });
+
+      const base = sanitizeFileName(file.name.replace(/\.[^/.]+$/, ""));
+      const fileName = `${base}-${Date.now()}.jpg`;
       const filePath = `machines/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('inspection-photos')
-        .upload(filePath, file);
+        .from("inspection-photos")
+        .upload(filePath, processed, {
+          contentType: "image/jpeg",
+          upsert: false,
+        });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('inspection-photos')
+        .from("inspection-photos")
         .getPublicUrl(filePath);
 
-      setFormData({ ...formData, image_url: publicUrl });
-      
+      setFormData((prev) => ({ ...prev, image_url: publicUrl }));
+
       toast({
-        title: "Imagem enviada com sucesso!",
-        description: "A imagem foi processada e está pronta para uso.",
+        title: "Imagem padronizada e enviada!",
+        description: "Aplicamos compressão e redimensionamento automático.",
       });
     } catch (error) {
       console.error("Erro ao fazer upload da imagem:", error);
@@ -332,7 +344,7 @@ const CatalogManagement = () => {
                     </div>
                     {formData.image_url && (
                       <div className="w-32 h-32 rounded bg-white dark:bg-slate-900 flex items-center justify-center p-2">
-                        <img src={formData.image_url} alt="Preview" className="w-full h-full object-contain" />
+                        <MachineImage imageUrl={formData.image_url} alt="Pré-visualização da máquina" />
                       </div>
                     )}
                   </div>
