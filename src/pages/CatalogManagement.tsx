@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Copy, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
 import { MachineImage } from "@/components/MachineImage";
@@ -34,6 +34,7 @@ const CatalogManagement = () => {
   const [editingModel, setEditingModel] = useState<MachineModel | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -170,6 +171,58 @@ const CatalogManagement = () => {
     }
   };
 
+  const handleClone = (model: MachineModel) => {
+    setFormData({
+      name: `${model.name} (Cópia)`,
+      category: model.category,
+      line: model.line,
+      image_url: model.image_url || "",
+      internal_code: model.internal_code ? `${model.internal_code}-copy` : "",
+      description: model.description || "",
+      technical_sheet_url: model.technical_sheet_url || "",
+      source_url: model.source_url || "",
+    });
+    setEditingModel(null);
+    setDialogOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const fileName = `${Date.now()}-${file.name.toLowerCase().replace(/\s+/g, '-')}`;
+      const filePath = `machines/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('inspection-photos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('inspection-photos')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, image_url: publicUrl });
+      
+      toast({
+        title: "Imagem enviada com sucesso!",
+        description: "A imagem foi processada e está pronta para uso.",
+      });
+    } catch (error) {
+      console.error("Erro ao fazer upload da imagem:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível fazer upload da imagem",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -256,13 +309,32 @@ const CatalogManagement = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="image_url">URL da Imagem Principal</Label>
-                    <Input
-                      id="image_url"
-                      type="url"
-                      value={formData.image_url}
-                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    />
+                    <Label htmlFor="image_url">Imagem Principal</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="image_url"
+                        type="url"
+                        value={formData.image_url}
+                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                        placeholder="ou faça upload abaixo"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="image_file"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={uploadingImage}
+                        className="flex-1"
+                      />
+                      {uploadingImage && <span className="text-sm text-muted-foreground">Enviando...</span>}
+                    </div>
+                    {formData.image_url && (
+                      <div className="w-32 h-32 rounded bg-white dark:bg-slate-900 flex items-center justify-center p-2">
+                        <img src={formData.image_url} alt="Preview" className="w-full h-full object-contain" />
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="description">Descrição Técnica</Label>
@@ -345,6 +417,14 @@ const CatalogManagement = () => {
                         </div>
                       </div>
                       <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleClone(model)}
+                          title="Clonar modelo"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="outline"
                           size="icon"
