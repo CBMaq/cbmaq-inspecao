@@ -101,10 +101,22 @@ const CatalogManagement = () => {
     e.preventDefault();
 
     try {
+      // Preparar dados removendo campos vazios para campos opcionais
+      const dataToSave = {
+        name: formData.name,
+        category: formData.category,
+        line: formData.line,
+        image_url: formData.image_url || null,
+        internal_code: formData.internal_code || null,
+        description: formData.description || null,
+        technical_sheet_url: formData.technical_sheet_url || null,
+        source_url: formData.source_url || null,
+      };
+
       if (editingModel) {
         const { error } = await supabase
           .from("machine_models")
-          .update(formData)
+          .update(dataToSave)
           .eq("id", editingModel.id);
 
         if (error) throw error;
@@ -112,7 +124,7 @@ const CatalogManagement = () => {
       } else {
         const { error } = await supabase
           .from("machine_models")
-          .insert([formData]);
+          .insert([dataToSave]);
 
         if (error) throw error;
         toast({ title: "Modelo adicionado com sucesso!" });

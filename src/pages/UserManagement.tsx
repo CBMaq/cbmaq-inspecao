@@ -59,10 +59,10 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Buscar todos os perfis (admins podem ver)
+      // Buscar todos os perfis com email (admins podem ver)
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name");
+        .select("id, full_name, email");
 
       if (profilesError) throw profilesError;
 
@@ -81,6 +81,7 @@ export default function UserManagement() {
           return {
             id: profile.id,
             full_name: profile.full_name,
+            email: profile.email,
             role,
           } as UserWithRole;
         })
@@ -198,6 +199,7 @@ export default function UserManagement() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
+                    <TableHead>Email</TableHead>
                     <TableHead>Papel Atual</TableHead>
                     <TableHead>Alterar Papel</TableHead>
                     <TableHead>Ações</TableHead>
@@ -208,6 +210,9 @@ export default function UserManagement() {
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
                         {user.full_name}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {user.email || "-"}
                       </TableCell>
                       <TableCell>
                         {getRoleBadge(user.role)}

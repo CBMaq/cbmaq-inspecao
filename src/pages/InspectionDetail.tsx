@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
-import { ArrowLeft, Save, CheckCircle2, Camera, FileText, XCircle } from "lucide-react";
+import { ArrowLeft, Save, CheckCircle2, Camera, FileText, XCircle, Trash2 } from "lucide-react";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -191,6 +191,7 @@ export default function InspectionDetail() {
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [confirmFinalizeOpen, setConfirmFinalizeOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [technicians, setTechnicians] = useState<Array<{ id: string; name: string }>>([]);
 
   useEffect(() => {
@@ -333,6 +334,29 @@ export default function InspectionDetail() {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from("inspections")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Inspeção excluída",
+        description: "A inspeção foi excluída com sucesso.",
+      });
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir",
+        description: error.message,
+      });
+    }
+  };
+
   const handleFinalize = async () => {
     if (!inspection.entry_signature || !inspection.exit_signature) {
       toast({
@@ -446,14 +470,25 @@ export default function InspectionDetail() {
       <div className="min-h-screen bg-background pb-20">
         <header className="border-b bg-card shadow-sm sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4">
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/")}
-              className="mb-2"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar
-            </Button>
+            <div className="flex items-center justify-between mb-2">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/")}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </Button>
+              {userRoles.includes("admin") && (
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmDeleteOpen(true)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir Inspeção
+                </Button>
+              )}
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold">Inspeção Técnica</h1>
@@ -1054,6 +1089,16 @@ export default function InspectionDetail() {
           title="Finalizar Inspeção"
           description="Tem certeza que deseja finalizar esta inspeção? Após finalizada, ela não poderá mais ser editada e aguardará aprovação."
           confirmText="Finalizar"
+        />
+
+        <ConfirmDialog
+          open={confirmDeleteOpen}
+          onOpenChange={setConfirmDeleteOpen}
+          onConfirm={handleDelete}
+          title="Excluir Inspeção"
+          description="Tem certeza que deseja excluir esta inspeção? Esta ação não pode ser desfeita."
+          confirmText="Excluir"
+          variant="destructive"
         />
       </div>
     </AuthGuard>
