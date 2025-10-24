@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,21 @@ export function DriverDocumentUpload({
 }: DriverDocumentUploadProps) {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+
+  // Gerar URL assinada quando existir um documento
+  useEffect(() => {
+    if (existingDocumentUrl) {
+      supabase.storage
+        .from("driver-documents")
+        .createSignedUrl(existingDocumentUrl, 3600) // 1 hora de validade
+        .then(({ data, error }) => {
+          if (data) {
+            setSignedUrl(data.signedUrl);
+          }
+        });
+    }
+  }, [existingDocumentUrl]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -59,15 +74,10 @@ export function DriverDocumentUpload({
 
       if (uploadError) throw uploadError;
 
-      // Obter URL pública
-      const { data: { publicUrl } } = supabase.storage
-        .from("driver-documents")
-        .getPublicUrl(filePath);
-
-      // Atualizar registro da inspeção
+      // Atualizar registro da inspeção com o caminho do arquivo
       const { error: updateError } = await supabase
         .from("inspections")
-        .update({ driver_documents_url: publicUrl })
+        .update({ driver_documents_url: filePath })
         .eq("id", inspectionId);
 
       if (updateError) throw updateError;
@@ -94,14 +104,10 @@ export function DriverDocumentUpload({
     if (!existingDocumentUrl) return;
 
     try {
-      // Extrair o caminho do arquivo da URL
-      const urlParts = existingDocumentUrl.split("/");
-      const fileName = urlParts[urlParts.length - 1];
-
-      // Remover do storage
+      // Remover do storage usando o caminho armazenado
       const { error: deleteError } = await supabase.storage
         .from("driver-documents")
-        .remove([fileName]);
+        .remove([existingDocumentUrl]);
 
       if (deleteError) throw deleteError;
 
@@ -138,14 +144,18 @@ export function DriverDocumentUpload({
           <FileText className="h-8 w-8 text-primary" />
           <div className="flex-1">
             <p className="font-medium">Documento carregado</p>
-            <a
-              href={existingDocumentUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline"
-            >
-              Visualizar documento
-            </a>
+            {signedUrl ? (
+              <a
+                href={signedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline"
+              >
+                Visualizar documento
+              </a>
+            ) : (
+              <p className="text-sm text-muted-foreground">Carregando link...</p>
+            )}
           </div>
           <Button
             type="button"
