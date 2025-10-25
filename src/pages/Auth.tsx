@@ -90,7 +90,7 @@ export default function Auth() {
             </Button>
           </form>
           <div className="mt-6 pt-4 border-t border-border/50">
-            <p className="text-xs text-center text-muted-foreground">
+            <p className="text-xs text-center text-blue-900 dark:text-blue-400">
               Seus dados estão protegidos pela Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
               Ao utilizar este sistema, você está ciente do uso de suas informações para fins de gestão de inspeções técnicas da CBMaq.
             </p>

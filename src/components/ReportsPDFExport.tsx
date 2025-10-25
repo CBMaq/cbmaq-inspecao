@@ -205,7 +205,7 @@ export function ReportsPDFExport({
     let yPos = 20;
     
     doc.setFontSize(7);
-    doc.setTextColor(100, 100, 100);
+    doc.setTextColor(30, 58, 138); // Azul escuro (blue-900)
     const lgpdText = "Os dados deste relatório estão protegidos pela Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018). " +
                      "As informações são utilizadas exclusivamente para fins de gestão e análise de inspeções técnicas da CBMaq.";
     const lgpdLines = doc.splitTextToSize(lgpdText, 170);

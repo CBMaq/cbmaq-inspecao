@@ -1024,7 +1024,7 @@ export default function InspectionDetail() {
 
         <div className="container mx-auto px-6 pb-24 max-w-5xl">
           <div className="mt-6 p-4 border-t border-border/50 bg-muted/30 rounded-lg">
-            <p className="text-xs text-center text-muted-foreground">
+            <p className="text-xs text-center text-blue-900 dark:text-blue-400">
               Os dados desta inspeção estão protegidos pela Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
               Ao utilizar este sistema, você está ciente do uso de suas informações para fins de gestão de inspeções técnicas da CBMaq.
             </p>
