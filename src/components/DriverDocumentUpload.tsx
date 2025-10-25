@@ -23,15 +23,37 @@ export function DriverDocumentUpload({
 
   // Gerar URL assinada quando existir um documento
   useEffect(() => {
+    const getPath = (urlOrPath: string) => {
+      if (!urlOrPath) return null;
+      try {
+        const u = new URL(urlOrPath);
+        const marker = "/driver-documents/";
+        const idx = u.pathname.indexOf(marker);
+        if (idx !== -1) {
+          return u.pathname.substring(idx + marker.length);
+        }
+      } catch {
+        // not a URL, keep going
+      }
+      return urlOrPath.replace(/^driver-documents\//, "").replace(/^\/+/, "");
+    };
+
     if (existingDocumentUrl) {
+      const path = getPath(existingDocumentUrl);
+      if (!path) return;
       supabase.storage
         .from("driver-documents")
-        .createSignedUrl(existingDocumentUrl, 3600) // 1 hora de validade
+        .createSignedUrl(path, 3600) // 1 hora de validade
         .then(({ data, error }) => {
-          if (data) {
+          if (error) {
+            console.error("Erro gerando URL assinada:", error);
+            setSignedUrl(null);
+          } else if (data?.signedUrl) {
             setSignedUrl(data.signedUrl);
           }
         });
+    } else {
+      setSignedUrl(null);
     }
   }, [existingDocumentUrl]);
 
@@ -104,10 +126,20 @@ export function DriverDocumentUpload({
     if (!existingDocumentUrl) return;
 
     try {
-      // Remover do storage usando o caminho armazenado
+      // Remover do storage usando o caminho armazenado (normalizando quando for URL antiga)
+      const normalizePath = (urlOrPath: string) => {
+        try {
+          const u = new URL(urlOrPath);
+          const marker = "/driver-documents/";
+          const idx = u.pathname.indexOf(marker);
+          if (idx !== -1) return u.pathname.substring(idx + marker.length);
+        } catch {}
+        return urlOrPath.replace(/^driver-documents\//, "").replace(/^\/+/, "");
+      };
+      const pathToDelete = normalizePath(existingDocumentUrl);
       const { error: deleteError } = await supabase.storage
         .from("driver-documents")
-        .remove([existingDocumentUrl]);
+        .remove([pathToDelete]);
 
       if (deleteError) throw deleteError;
 
