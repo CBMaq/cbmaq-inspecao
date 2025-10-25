@@ -200,14 +200,25 @@ export function ReportsPDFExport({
       });
     }
     
+    // Aviso LGPD
+    doc.addPage();
+    let yPos = 20;
+    
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    const lgpdText = "Os dados deste relatório estão protegidos pela Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018). " +
+                     "As informações são utilizadas exclusivamente para fins de gestão e análise de inspeções técnicas da CBMaq.";
+    const lgpdLines = doc.splitTextToSize(lgpdText, 170);
+    doc.text(lgpdLines, 105, yPos, { align: "center" });
+    
     // Rodapé
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
+    const finalPageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= finalPageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(128, 128, 128);
       doc.text(
-        `Página ${i} de ${pageCount} - Gerado em ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`,
+        `Página ${i} de ${finalPageCount} - Gerado em ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`,
         105,
         290,
         { align: "center" }
