@@ -182,7 +182,7 @@ const MachineCatalog = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {lineModels.map((model) => (
                           <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
-                            <div className="h-48 relative bg-white dark:bg-slate-900 flex items-center justify-center">
+                            <div className="h-64 relative bg-white dark:bg-slate-900 flex items-center justify-center">
                               {model.image_url ? (
                                 <MachineImage
                                   imageUrl={model.image_url}
