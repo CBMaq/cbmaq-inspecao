@@ -45,6 +45,33 @@ export function PhotoUpload({ inspectionId, photoType, label, onPhotoUploaded }:
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    // Validation constants
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic'];
+
+    // Validate all files before upload
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          variant: "destructive",
+          title: "Arquivo muito grande",
+          description: `${file.name} excede o tamanho máximo de 10MB.`,
+        });
+        return;
+      }
+
+      if (!ALLOWED_TYPES.includes(file.type.toLowerCase())) {
+        toast({
+          variant: "destructive",
+          title: "Tipo de arquivo inválido",
+          description: `${file.name} não é um formato de imagem permitido. Use JPG, PNG, WEBP ou HEIC.`,
+        });
+        return;
+      }
+    }
+
     setUploading(true);
     setUploadProgress(0);
     const totalFiles = files.length;
