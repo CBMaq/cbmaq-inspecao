@@ -181,13 +181,13 @@ const MachineCatalog = () => {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {lineModels.map((model) => (
-                          <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                            <div className="aspect-video relative bg-white dark:bg-slate-900">
+                          <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
+                            <div className="h-48 relative bg-white dark:bg-slate-900 flex items-center justify-center">
                               {model.image_url ? (
                                 <MachineImage
                                   imageUrl={model.image_url}
                                   alt={model.name}
-                                  className="p-8"
+                                  className="p-6 h-full"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -195,18 +195,18 @@ const MachineCatalog = () => {
                                 </div>
                               )}
                             </div>
-                            <CardHeader>
-                              <CardTitle className="text-lg">{model.name}</CardTitle>
+                            <CardHeader className="flex-grow">
+                              <CardTitle className="text-lg line-clamp-2 min-h-[3.5rem]">{model.name}</CardTitle>
                               <CardDescription>
-                                <div className="space-y-1">
-                                  <div>Categoria: {model.category}</div>
+                                <div className="space-y-1 min-h-[2.5rem]">
+                                  <div className="line-clamp-1">Categoria: {model.category}</div>
                                   {model.internal_code && (
-                                    <div className="text-xs">Código: {model.internal_code}</div>
+                                    <div className="text-xs line-clamp-1">Código: {model.internal_code}</div>
                                   )}
                                 </div>
                               </CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="pt-0 mt-auto">
                               <Button
                                 onClick={() => handleSelectModel(model.id)}
                                 className="w-full"
