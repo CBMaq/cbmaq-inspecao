@@ -11,6 +11,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { observationSchema } from "@/lib/validations";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
 
 interface ApprovalDialogProps {
   open: boolean;
@@ -28,18 +31,30 @@ export function ApprovalDialog({
   const [observations, setObservations] = useState("");
   const [loading, setLoading] = useState(false);
   const [action, setAction] = useState<"approve" | "reject" | null>(null);
+  const { toast } = useToast();
 
   const handleAction = async (actionType: "approve" | "reject") => {
-    setLoading(true);
     try {
+      // Validate observations length
+      const validated = observationSchema.parse({ approval_observations: observations });
+      
+      setLoading(true);
       if (actionType === "approve") {
-        await onApprove(observations);
+        await onApprove(validated.approval_observations || "");
       } else {
-        await onReject(observations);
+        await onReject(validated.approval_observations || "");
       }
       setObservations("");
       setAction(null);
       onOpenChange(false);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          variant: "destructive",
+          title: "Texto muito longo",
+          description: error.errors[0].message,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -107,6 +122,7 @@ export function ApprovalDialog({
               }
               rows={5}
               className="mt-2"
+              maxLength={2000}
             />
           </div>
         </div>

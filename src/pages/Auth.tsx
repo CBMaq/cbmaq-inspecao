@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Wrench } from "lucide-react";
 import backgroundImage from "@/assets/cbmaq-background.png";
+import { signInSchema } from "@/lib/validations";
+import { z } from "zod";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -18,29 +20,56 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+      // Validate input
+      const validated = signInSchema.parse({ email, password });
 
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao fazer login",
-        description: error.message,
+      const { error } = await supabase.auth.signInWithPassword({
+        email: validated.email,
+        password: validated.password,
       });
-    } else {
-      toast({
-        title: "Login realizado com sucesso!",
-      });
-      navigate("/");
+
+      if (error) {
+        // Handle specific auth errors with friendly messages
+        let errorMessage = error.message;
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Email ou senha incorretos";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage = "Email ainda não confirmado. Verifique sua caixa de entrada.";
+        }
+        
+        toast({
+          variant: "destructive",
+          title: "Erro ao fazer login",
+          description: errorMessage,
+        });
+      } else {
+        toast({
+          title: "Login realizado com sucesso!",
+        });
+        navigate("/");
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          variant: "destructive",
+          title: "Dados inválidos",
+          description: error.errors[0].message,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro inesperado",
+          description: "Tente novamente mais tarde",
+        });
+      }
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
 
@@ -74,6 +103,7 @@ export default function Auth() {
                 type="email"
                 placeholder="seu@email.com"
                 required
+                maxLength={255}
               />
             </div>
             <div className="space-y-2">
@@ -83,6 +113,8 @@ export default function Auth() {
                 name="password"
                 type="password"
                 required
+                maxLength={72}
+                minLength={6}
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>

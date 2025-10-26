@@ -19,6 +19,8 @@ import { ApprovalDialog } from "@/components/ApprovalDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { DriverDocumentUpload } from "@/components/DriverDocumentUpload";
 import { Input } from "@/components/ui/input";
+import { observationSchema } from "@/lib/validations";
+import { z } from "zod";
 
 interface InspectionData {
   id: string;
@@ -738,13 +740,29 @@ export default function InspectionDetail() {
                         setInspection({ ...inspection, fault_codes_description: e.target.value })
                       }
                       onBlur={async (e) => {
-                        await supabase
-                          .from("inspections")
-                          .update({ fault_codes_description: e.target.value })
-                          .eq("id", id);
+                        try {
+                          const validated = observationSchema.parse({ 
+                            fault_codes_description: e.target.value 
+                          });
+                          await supabase
+                            .from("inspections")
+                            .update({ fault_codes_description: validated.fault_codes_description })
+                            .eq("id", id);
+                        } catch (error) {
+                          if (error instanceof z.ZodError) {
+                            toast({
+                              variant: "destructive",
+                              title: "Texto muito longo",
+                              description: error.errors[0].message,
+                            });
+                            // Revert to previous value
+                            fetchInspection();
+                          }
+                        }
                       }}
                       placeholder="Liste os códigos de falha..."
                       rows={3}
+                      maxLength={1000}
                     />
                   </div>
 
@@ -780,13 +798,29 @@ export default function InspectionDetail() {
                   setInspection({ ...inspection, general_observations: e.target.value })
                 }
                 onBlur={async (e) => {
-                  await supabase
-                    .from("inspections")
-                    .update({ general_observations: e.target.value })
-                    .eq("id", id);
+                  try {
+                    const validated = observationSchema.parse({ 
+                      general_observations: e.target.value 
+                    });
+                    await supabase
+                      .from("inspections")
+                      .update({ general_observations: validated.general_observations })
+                      .eq("id", id);
+                  } catch (error) {
+                    if (error instanceof z.ZodError) {
+                      toast({
+                        variant: "destructive",
+                        title: "Texto muito longo",
+                        description: error.errors[0].message,
+                      });
+                      // Revert to previous value
+                      fetchInspection();
+                    }
+                  }
                 }}
                 placeholder="Adicione observações gerais sobre a inspeção..."
                 rows={5}
+                maxLength={2000}
               />
             </CardContent>
           </Card>

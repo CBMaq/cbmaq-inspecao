@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ArrowLeft, Save, Search } from "lucide-react";
+import { inspectionSchema } from "@/lib/validations";
+import { z } from "zod";
 
 interface MachineModel {
   id: string;
@@ -55,49 +57,73 @@ export default function NewInspection() {
     e.preventDefault();
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Usuário não autenticado",
-      });
-      setLoading(false);
-      return;
-    }
+    try {
+      const formData = new FormData(e.currentTarget);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Erro",
+          description: "Usuário não autenticado",
+        });
+        setLoading(false);
+        return;
+      }
 
-    const { data, error } = await supabase
-      .from("inspections")
-      .insert({
+      // Validate form data
+      const horimeterValue = parseInt(formData.get("horimeter") as string);
+      
+      const formDataObj = {
         inspection_date: formData.get("inspection_date") as string,
         model: selectedModel ? selectedModel.name : (formData.get("model") as string),
         serial_number: formData.get("serial_number") as string,
-        horimeter: parseInt(formData.get("horimeter") as string),
-        freight_responsible: formData.get("freight_responsible") as string,
-        created_by: user.id,
-        status: "em_andamento",
-        model_id: selectedModel?.id || null,
-      })
-      .select()
-      .single();
+        horimeter: isNaN(horimeterValue) ? 0 : horimeterValue,
+        freight_responsible: formData.get("freight_responsible") as string || "",
+      };
 
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao criar inspeção",
-        description: error.message,
-      });
-    } else {
+      const validated = inspectionSchema.parse(formDataObj);
+
+      const { data, error } = await supabase
+        .from("inspections")
+        .insert({
+          inspection_date: validated.inspection_date,
+          model: validated.model,
+          serial_number: validated.serial_number,
+          horimeter: validated.horimeter,
+          freight_responsible: validated.freight_responsible || null,
+          created_by: user.id,
+          status: "em_andamento",
+          model_id: selectedModel?.id || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       toast({
         title: "Inspeção criada com sucesso!",
       });
       navigate(`/inspecao/${data.id}`);
+      
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          variant: "destructive",
+          title: "Dados inválidos",
+          description: error.errors[0].message,
+        });
+      } else if (error instanceof Error) {
+        toast({
+          variant: "destructive",
+          title: "Erro ao criar inspeção",
+          description: error.message,
+        });
+      }
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
