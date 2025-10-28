@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ArrowLeft, Save, CheckCircle2, Camera, FileText, XCircle, Trash2 } from "lucide-react";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
+import { ProcessTypeBadge } from "@/components/ProcessTypeBadge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { SignaturePad } from "@/components/SignaturePad";
@@ -25,6 +26,7 @@ import { z } from "zod";
 interface InspectionData {
   id: string;
   inspection_date: string;
+  process_type: "instalacao_entrada_target" | "entrada_cbmaq" | "saida_cbmaq";
   model: string;
   serial_number: string;
   horimeter: number;
@@ -498,7 +500,10 @@ export default function InspectionDetail() {
                   {inspection.model} - {inspection.serial_number}
                 </p>
               </div>
-              <InspectionStatusBadge status={inspection.status} />
+              <div className="flex flex-col items-end gap-2">
+                <InspectionStatusBadge status={inspection.status} />
+                <ProcessTypeBadge processType={inspection.process_type} />
+              </div>
             </div>
           </div>
         </header>
@@ -545,6 +550,12 @@ export default function InspectionDetail() {
               <CardTitle>Dados do Equipamento</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <Label className="text-muted-foreground">Tipo de Processo</Label>
+                <div className="mt-1">
+                  <ProcessTypeBadge processType={inspection.process_type} />
+                </div>
+              </div>
               <div>
                 <Label className="text-muted-foreground">Data</Label>
                 <p className="font-medium">

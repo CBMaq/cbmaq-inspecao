@@ -10,6 +10,7 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { ArrowLeft, Save, Search } from "lucide-react";
 import { inspectionSchema } from "@/lib/validations";
 import { z } from "zod";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface MachineModel {
   id: string;
@@ -77,6 +78,7 @@ export default function NewInspection() {
       
       const formDataObj = {
         inspection_date: formData.get("inspection_date") as string,
+        process_type: formData.get("process_type") as string,
         model: selectedModel ? selectedModel.name : (formData.get("model") as string),
         serial_number: formData.get("serial_number") as string,
         horimeter: isNaN(horimeterValue) ? 0 : horimeterValue,
@@ -89,6 +91,7 @@ export default function NewInspection() {
         .from("inspections")
         .insert({
           inspection_date: validated.inspection_date,
+          process_type: validated.process_type,
           model: validated.model,
           serial_number: validated.serial_number,
           horimeter: validated.horimeter,
@@ -200,6 +203,32 @@ export default function NewInspection() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <Label>Tipo de Processo *</Label>
+                    <RadioGroup name="process_type" defaultValue="entrada_cbmaq" required>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="instalacao_entrada_target" id="instalacao_entrada_target" />
+                        <Label htmlFor="instalacao_entrada_target" className="font-normal cursor-pointer">
+                          Instalação Entrada Target
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="entrada_cbmaq" id="entrada_cbmaq" />
+                        <Label htmlFor="entrada_cbmaq" className="font-normal cursor-pointer">
+                          Entrada CBMAQ
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="saida_cbmaq" id="saida_cbmaq" />
+                        <Label htmlFor="saida_cbmaq" className="font-normal cursor-pointer">
+                          Saída CBMAQ
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </div>
+
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="inspection_date">Data da Inspeção</Label>

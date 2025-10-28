@@ -6,6 +6,7 @@ import autoTable from "jspdf-autotable";
 interface InspectionData {
   id: string;
   inspection_date: string;
+  process_type: "instalacao_entrada_target" | "entrada_cbmaq" | "saida_cbmaq";
   model: string;
   serial_number: string;
   horimeter: number;
@@ -70,6 +71,12 @@ const STATUS_LABELS: Record<string, string> = {
   reprovada: "Reprovada",
 };
 
+const PROCESS_TYPE_LABELS: Record<string, string> = {
+  instalacao_entrada_target: "Instalação Entrada Target",
+  entrada_cbmaq: "Entrada CBMAQ",
+  saida_cbmaq: "Saída CBMAQ",
+};
+
 export function PDFExport({ inspection, items, disabled }: PDFExportProps) {
   const generatePDF = async () => {
     const doc = new jsPDF();
@@ -107,6 +114,7 @@ export function PDFExport({ inspection, items, disabled }: PDFExportProps) {
     
     doc.setFontSize(10);
     const equipmentData = [
+      ["Tipo de Processo", PROCESS_TYPE_LABELS[inspection.process_type] || inspection.process_type],
       ["Data da Inspeção", new Date(inspection.inspection_date).toLocaleDateString("pt-BR")],
       ["Modelo", inspection.model],
       ["Número de Série", inspection.serial_number],

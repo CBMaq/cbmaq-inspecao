@@ -116,6 +116,7 @@ export type Database = {
           inspection_date: string
           model: string
           model_id: string | null
+          process_type: string
           serial_number: string
           status: string
           updated_at: string | null
@@ -148,6 +149,7 @@ export type Database = {
           inspection_date?: string
           model: string
           model_id?: string | null
+          process_type?: string
           serial_number: string
           status?: string
           updated_at?: string | null
@@ -180,6 +182,7 @@ export type Database = {
           inspection_date?: string
           model?: string
           model_id?: string | null
+          process_type?: string
           serial_number?: string
           status?: string
           updated_at?: string | null

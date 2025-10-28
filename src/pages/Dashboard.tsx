@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
+import { ProcessTypeBadge } from "@/components/ProcessTypeBadge";
 import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, AlertCircle, Shield, BarChart3, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -14,6 +15,7 @@ import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 interface Inspection {
   id: string;
   inspection_date: string;
+  process_type: "instalacao_entrada_target" | "entrada_cbmaq" | "saida_cbmaq";
   model: string;
   serial_number: string;
   status: "em_andamento" | "finalizada" | "aprovada" | "reprovada";
@@ -297,7 +299,10 @@ export default function Dashboard() {
                           Nº Série: {inspection.serial_number}
                         </p>
                       </div>
-                      <InspectionStatusBadge status={inspection.status} />
+                      <div className="flex flex-col items-end gap-2">
+                        <InspectionStatusBadge status={inspection.status} />
+                        <ProcessTypeBadge processType={inspection.process_type} />
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
