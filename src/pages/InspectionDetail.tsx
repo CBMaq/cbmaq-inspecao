@@ -296,6 +296,22 @@ export default function InspectionDetail() {
     setItems(newItems);
   };
 
+  // Determine which columns to show based on process type
+  const getVisibleColumns = () => {
+    if (!inspection) return { showEntry: true, showExit: true };
+    
+    switch (inspection.process_type) {
+      case "instalacao_entrada_target":
+        return { showEntry: true, showExit: false };
+      case "entrada_cbmaq":
+        return { showEntry: true, showExit: false };
+      case "saida_cbmaq":
+        return { showEntry: false, showExit: true };
+      default:
+        return { showEntry: true, showExit: true };
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
 
@@ -623,69 +639,73 @@ export default function InspectionDetail() {
                             return (
                               <Card key={`${item.category}-${index}`} className="border-l-4 border-l-primary">
                                 <CardContent className="pt-6">
-                                  <p className="font-medium mb-4">{item.item_description}</p>
-                                  
-                                  <div className="grid gap-4 sm:grid-cols-2 mb-4">
-                                    <div>
-                                      <Label className="mb-2 block">Entrada</Label>
-                                      <RadioGroup
-                                        value={item.entry_status || ""}
-                                        onValueChange={(value) =>
-                                          updateItem(globalIndex, "entry_status", value as "A" | "B" | "C")
-                                        }
-                                        className="flex gap-4"
-                                      >
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="A" id={`entry-a-${globalIndex}`} />
-                                          <Label htmlFor={`entry-a-${globalIndex}`} className="cursor-pointer">
-                                            A
-                                          </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="B" id={`entry-b-${globalIndex}`} />
-                                          <Label htmlFor={`entry-b-${globalIndex}`} className="cursor-pointer">
-                                            B
-                                          </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="C" id={`entry-c-${globalIndex}`} />
-                                          <Label htmlFor={`entry-c-${globalIndex}`} className="cursor-pointer">
-                                            C
-                                          </Label>
-                                        </div>
-                                      </RadioGroup>
-                                    </div>
+                                   <p className="font-medium mb-4">{item.item_description}</p>
+                                   
+                                   <div className={`grid gap-4 mb-4 ${getVisibleColumns().showEntry && getVisibleColumns().showExit ? 'sm:grid-cols-2' : 'sm:grid-cols-1'}`}>
+                                     {getVisibleColumns().showEntry && (
+                                       <div>
+                                         <Label className="mb-2 block">Entrada</Label>
+                                         <RadioGroup
+                                           value={item.entry_status || ""}
+                                           onValueChange={(value) =>
+                                             updateItem(globalIndex, "entry_status", value as "A" | "B" | "C")
+                                           }
+                                           className="flex gap-4"
+                                         >
+                                           <div className="flex items-center space-x-2">
+                                             <RadioGroupItem value="A" id={`entry-a-${globalIndex}`} />
+                                             <Label htmlFor={`entry-a-${globalIndex}`} className="cursor-pointer">
+                                               A
+                                             </Label>
+                                           </div>
+                                           <div className="flex items-center space-x-2">
+                                             <RadioGroupItem value="B" id={`entry-b-${globalIndex}`} />
+                                             <Label htmlFor={`entry-b-${globalIndex}`} className="cursor-pointer">
+                                               B
+                                             </Label>
+                                           </div>
+                                           <div className="flex items-center space-x-2">
+                                             <RadioGroupItem value="C" id={`entry-c-${globalIndex}`} />
+                                             <Label htmlFor={`entry-c-${globalIndex}`} className="cursor-pointer">
+                                               C
+                                             </Label>
+                                           </div>
+                                         </RadioGroup>
+                                       </div>
+                                     )}
 
-                                    <div>
-                                      <Label className="mb-2 block">Saída</Label>
-                                      <RadioGroup
-                                        value={item.exit_status || ""}
-                                        onValueChange={(value) =>
-                                          updateItem(globalIndex, "exit_status", value as "A" | "B" | "C")
-                                        }
-                                        className="flex gap-4"
-                                      >
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="A" id={`exit-a-${globalIndex}`} />
-                                          <Label htmlFor={`exit-a-${globalIndex}`} className="cursor-pointer">
-                                            A
-                                          </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="B" id={`exit-b-${globalIndex}`} />
-                                          <Label htmlFor={`exit-b-${globalIndex}`} className="cursor-pointer">
-                                            B
-                                          </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="C" id={`exit-c-${globalIndex}`} />
-                                          <Label htmlFor={`exit-c-${globalIndex}`} className="cursor-pointer">
-                                            C
-                                          </Label>
-                                        </div>
-                                      </RadioGroup>
-                                    </div>
-                                  </div>
+                                     {getVisibleColumns().showExit && (
+                                       <div>
+                                         <Label className="mb-2 block">Saída</Label>
+                                         <RadioGroup
+                                           value={item.exit_status || ""}
+                                           onValueChange={(value) =>
+                                             updateItem(globalIndex, "exit_status", value as "A" | "B" | "C")
+                                           }
+                                           className="flex gap-4"
+                                         >
+                                           <div className="flex items-center space-x-2">
+                                             <RadioGroupItem value="A" id={`exit-a-${globalIndex}`} />
+                                             <Label htmlFor={`exit-a-${globalIndex}`} className="cursor-pointer">
+                                               A
+                                             </Label>
+                                           </div>
+                                           <div className="flex items-center space-x-2">
+                                             <RadioGroupItem value="B" id={`exit-b-${globalIndex}`} />
+                                             <Label htmlFor={`exit-b-${globalIndex}`} className="cursor-pointer">
+                                               B
+                                             </Label>
+                                           </div>
+                                           <div className="flex items-center space-x-2">
+                                             <RadioGroupItem value="C" id={`exit-c-${globalIndex}`} />
+                                             <Label htmlFor={`exit-c-${globalIndex}`} className="cursor-pointer">
+                                               C
+                                             </Label>
+                                           </div>
+                                         </RadioGroup>
+                                       </div>
+                                     )}
+                                   </div>
 
                                   {(item.entry_status === "B" || item.exit_status === "B") && (
                                     <div>

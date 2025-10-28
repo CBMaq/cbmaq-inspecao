@@ -81,6 +81,10 @@ export function PDFExport({ inspection, items, disabled }: PDFExportProps) {
   const generatePDF = async () => {
     const doc = new jsPDF();
     
+    // Determine which columns to show based on process type
+    const showEntry = inspection.process_type === "instalacao_entrada_target" || inspection.process_type === "entrada_cbmaq";
+    const showExit = inspection.process_type === "saida_cbmaq";
+    
     // Header
     doc.setFontSize(20);
     doc.setTextColor(51, 51, 51);
@@ -181,16 +185,41 @@ export function PDFExport({ inspection, items, disabled }: PDFExportProps) {
       doc.text(CATEGORY_LABELS[category] || category, 20, yPosition);
       yPosition += 5;
       
-      const tableData = categoryItems.map((item) => [
-        item.item_description,
-        item.entry_status || "-",
-        item.exit_status || "-",
-        item.problem_description || "-",
-      ]);
+      // Build table headers and data based on visible columns
+      const tableHeaders = ["Item"];
+      if (showEntry) tableHeaders.push("Entrada");
+      if (showExit) tableHeaders.push("Saída");
+      tableHeaders.push("Observações");
+      
+      const tableData = categoryItems.map((item) => {
+        const row = [item.item_description];
+        if (showEntry) row.push(item.entry_status || "-");
+        if (showExit) row.push(item.exit_status || "-");
+        row.push(item.problem_description || "-");
+        return row;
+      });
+      
+      // Adjust column widths based on visible columns
+      const itemColWidth = showEntry && showExit ? 80 : 100;
+      const obsColWidth = showEntry && showExit ? 60 : 80;
+      const columnStyles: any = {
+        0: { cellWidth: itemColWidth },
+      };
+      
+      let colIndex = 1;
+      if (showEntry) {
+        columnStyles[colIndex] = { cellWidth: 20, halign: "center" };
+        colIndex++;
+      }
+      if (showExit) {
+        columnStyles[colIndex] = { cellWidth: 20, halign: "center" };
+        colIndex++;
+      }
+      columnStyles[colIndex] = { cellWidth: obsColWidth };
       
       autoTable(doc, {
         startY: yPosition,
-        head: [["Item", "Entrada", "Saída", "Observações"]],
+        head: [tableHeaders],
         body: tableData,
         theme: "grid",
         headStyles: {
@@ -201,12 +230,7 @@ export function PDFExport({ inspection, items, disabled }: PDFExportProps) {
         bodyStyles: {
           fontSize: 8,
         },
-        columnStyles: {
-          0: { cellWidth: 80 },
-          1: { cellWidth: 20, halign: "center" },
-          2: { cellWidth: 20, halign: "center" },
-          3: { cellWidth: 60 },
-        },
+        columnStyles,
       });
       
       yPosition = (doc as any).lastAutoTable.finalY + 10;
