@@ -13,7 +13,7 @@ import { ArrowLeft, Save, CheckCircle2, Camera, FileText, XCircle, Trash2 } from
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
 import { ProcessTypeBadge } from "@/components/ProcessTypeBadge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PhotoUpload } from "@/components/PhotoUpload";
+import { MediaUpload } from "@/components/MediaUpload";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PDFExport } from "@/components/PDFExport";
 import { ApprovalDialog } from "@/components/ApprovalDialog";
@@ -860,61 +860,61 @@ export default function InspectionDetail() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Camera className="h-5 w-5" />
-                Fotos da Inspeção
+                Fotos e Vídeos da Inspeção
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <PhotoUpload
+              <MediaUpload
                 inspectionId={id!}
                 photoType="machine_entry"
                 label="Máquina na Entrada"
               />
-              <PhotoUpload
+              <MediaUpload
                 inspectionId={id!}
                 photoType="machine_exit"
                 label="Máquina na Saída"
               />
-              <PhotoUpload
+              <MediaUpload
                 inspectionId={id!}
                 photoType="horimeter"
                 label="Horímetro"
               />
-              <PhotoUpload
+              <MediaUpload
                 inspectionId={id!}
                 photoType="identification_plates"
                 label="Plaquetas de Identificação"
               />
-              <PhotoUpload
+              <MediaUpload
                 inspectionId={id!}
                 photoType="engine"
                 label="Motor (Direito/Esquerdo)"
               />
-              <PhotoUpload
+              <MediaUpload
                 inspectionId={id!}
                 photoType="front"
                 label="Frente"
               />
-              <PhotoUpload
+              <MediaUpload
                 inspectionId={id!}
                 photoType="sides"
                 label="Laterais"
               />
-              <PhotoUpload
+              <MediaUpload
                 inspectionId={id!}
                 photoType="rear"
                 label="Traseira"
               />
-              <PhotoUpload
+              <MediaUpload
                 inspectionId={id!}
                 photoType="cabin"
                 label="Cabine"
               />
-              <PhotoUpload
+              <MediaUpload
                 inspectionId={id!}
                 photoType="keys"
                 label="Chaves"
               />
-              <PhotoUpload
+              <MediaUpload
                 inspectionId={id!}
                 photoType="toolbox"
                 label="Caixa de Ferramentas"
