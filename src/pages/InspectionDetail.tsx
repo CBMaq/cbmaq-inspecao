@@ -1000,89 +1000,93 @@ export default function InspectionDetail() {
               <CardTitle>Assinaturas Digitais dos Técnicos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <SignaturePad
-                label="Técnico Responsável pela Entrada"
-                existingSignature={inspection.entry_signature}
-                existingTechnicianId={inspection.entry_technician_id}
-                existingTechnicianName={inspection.entry_technician_name}
-                existingDate={inspection.entry_signature_date}
-                technicians={technicians}
-                onSign={async (signature, technicianId, technicianName, date) => {
-                  const { error } = await supabase
-                    .from("inspections")
-                    .update({
+              {(inspection.process_type === "entrada_cbmaq" || inspection.process_type === "instalacao_entrada_target") && (
+                <SignaturePad
+                  label="Técnico Responsável pela Entrada"
+                  existingSignature={inspection.entry_signature}
+                  existingTechnicianId={inspection.entry_technician_id}
+                  existingTechnicianName={inspection.entry_technician_name}
+                  existingDate={inspection.entry_signature_date}
+                  technicians={technicians}
+                  onSign={async (signature, technicianId, technicianName, date) => {
+                    const { error } = await supabase
+                      .from("inspections")
+                      .update({
+                        entry_signature: signature,
+                        entry_technician_id: technicianId,
+                        entry_technician_name: technicianName,
+                        entry_signature_date: date,
+                      })
+                      .eq("id", id);
+                    
+                    if (error) {
+                      toast({
+                        variant: "destructive",
+                        title: "Erro ao salvar assinatura",
+                        description: error.message,
+                      });
+                      return;
+                    }
+                    
+                    setInspection({
+                      ...inspection,
                       entry_signature: signature,
                       entry_technician_id: technicianId,
                       entry_technician_name: technicianName,
                       entry_signature_date: date,
-                    })
-                    .eq("id", id);
-                  
-                  if (error) {
-                    toast({
-                      variant: "destructive",
-                      title: "Erro ao salvar assinatura",
-                      description: error.message,
                     });
-                    return;
-                  }
-                  
-                  setInspection({
-                    ...inspection,
-                    entry_signature: signature,
-                    entry_technician_id: technicianId,
-                    entry_technician_name: technicianName,
-                    entry_signature_date: date,
-                  });
 
-                  toast({
-                    title: "Assinatura de entrada salva!",
-                    description: "A assinatura foi registrada com sucesso.",
-                  });
-                }}
-              />
+                    toast({
+                      title: "Assinatura de entrada salva!",
+                      description: "A assinatura foi registrada com sucesso.",
+                    });
+                  }}
+                />
+              )}
 
-              <SignaturePad
-                label="Técnico Responsável pela Saída"
-                existingSignature={inspection.exit_signature}
-                existingTechnicianId={inspection.exit_technician_id}
-                existingTechnicianName={inspection.exit_technician_name}
-                existingDate={inspection.exit_signature_date}
-                technicians={technicians}
-                onSign={async (signature, technicianId, technicianName, date) => {
-                  const { error } = await supabase
-                    .from("inspections")
-                    .update({
+              {inspection.process_type === "saida_cbmaq" && (
+                <SignaturePad
+                  label="Técnico Responsável pela Saída"
+                  existingSignature={inspection.exit_signature}
+                  existingTechnicianId={inspection.exit_technician_id}
+                  existingTechnicianName={inspection.exit_technician_name}
+                  existingDate={inspection.exit_signature_date}
+                  technicians={technicians}
+                  onSign={async (signature, technicianId, technicianName, date) => {
+                    const { error } = await supabase
+                      .from("inspections")
+                      .update({
+                        exit_signature: signature,
+                        exit_technician_id: technicianId,
+                        exit_technician_name: technicianName,
+                        exit_signature_date: date,
+                      })
+                      .eq("id", id);
+                    
+                    if (error) {
+                      toast({
+                        variant: "destructive",
+                        title: "Erro ao salvar assinatura",
+                        description: error.message,
+                      });
+                      return;
+                    }
+                    
+                    setInspection({
+                      ...inspection,
                       exit_signature: signature,
                       exit_technician_id: technicianId,
                       exit_technician_name: technicianName,
                       exit_signature_date: date,
-                    })
-                    .eq("id", id);
-                  
-                  if (error) {
-                    toast({
-                      variant: "destructive",
-                      title: "Erro ao salvar assinatura",
-                      description: error.message,
                     });
-                    return;
-                  }
-                  
-                  setInspection({
-                    ...inspection,
-                    exit_signature: signature,
-                    exit_technician_id: technicianId,
-                    exit_technician_name: technicianName,
-                    exit_signature_date: date,
-                  });
 
-                  toast({
-                    title: "Assinatura de saída salva!",
-                    description: "A assinatura foi registrada com sucesso.",
-                  });
-                }}
-              />
+                    toast({
+                      title: "Assinatura de saída salva!",
+                      description: "A assinatura foi registrada com sucesso.",
+                    });
+                  }}
+                />
+              )}
             </CardContent>
           </Card>
         </main>
