@@ -378,14 +378,6 @@ export default function InspectionDetail() {
   };
 
   const handleFinalize = async () => {
-    if (!inspection.entry_signature || !inspection.exit_signature) {
-      toast({
-        variant: "destructive",
-        title: "Assinaturas obrigatórias",
-        description: "É necessário ter as assinaturas de entrada e saída para finalizar.",
-      });
-      return;
-    }
 
     const { error } = await supabase
       .from("inspections")
