@@ -8,7 +8,7 @@ export const ProcessTypeBadge = ({ processType }: ProcessTypeBadgeProps) => {
   const variants = {
     instalacao_entrada_target: { 
       className: "bg-blue-500 text-white hover:bg-blue-600", 
-      label: "Instalação Entrada Target" 
+      label: "PDI Target" 
     },
     entrada_cbmaq: { 
       className: "bg-green-500 text-white hover:bg-green-600", 
