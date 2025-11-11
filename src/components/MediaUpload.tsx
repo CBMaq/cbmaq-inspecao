@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Image as ImageIcon, Video } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Video, Maximize2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface MediaUploadProps {
   inspectionId: string;
@@ -24,6 +25,7 @@ export function MediaUpload({ inspectionId, photoType, label, onMediaUploaded }:
   const [uploadProgress, setUploadProgress] = useState(0);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -212,11 +214,16 @@ export function MediaUpload({ inspectionId, photoType, label, onMediaUploaded }:
             <Card key={index} className="relative group">
               <CardContent className="p-2">
                 {item.type === 'image' ? (
-                  <img
-                    src={item.url}
-                    alt={`${label} ${index + 1}`}
-                    className="w-full h-32 object-cover rounded"
-                  />
+                  <div className="relative group/image cursor-pointer" onClick={() => setSelectedImage(item.url)}>
+                    <img
+                      src={item.url}
+                      alt={`${label} ${index + 1}`}
+                      className="w-full h-32 object-cover rounded"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center rounded">
+                      <Maximize2 className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
                 ) : (
                   <div className="relative w-full h-32 bg-muted rounded overflow-hidden">
                     <video
@@ -254,6 +261,16 @@ export function MediaUpload({ inspectionId, photoType, label, onMediaUploaded }:
           <p className="text-sm">Nenhuma foto ou vídeo adicionado</p>
         </div>
       )}
+
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0">
+          <img
+            src={selectedImage || ""}
+            alt="Imagem ampliada"
+            className="w-full h-full object-contain"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
