@@ -11,6 +11,7 @@ import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, Ale
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
+import { InspectionNotifications } from "@/components/InspectionNotifications";
 
 interface Inspection {
   id: string;
@@ -162,6 +163,7 @@ export default function Dashboard() {
         </header>
 
         <main className="container mx-auto px-4 py-8">
+          <InspectionNotifications userRoles={userRoles} />
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-3xl font-bold">Inspeções</h2>

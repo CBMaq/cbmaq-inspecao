@@ -1,1 +1,4 @@
 project_id = "webhbnhgsbvlynseiloc"
+
+[functions.send-inspection-notification]
+verify_jwt = false

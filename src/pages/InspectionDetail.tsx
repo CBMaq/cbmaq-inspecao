@@ -398,6 +398,47 @@ export default function InspectionDetail() {
       description: "A inspeção foi concluída e aguarda aprovação.",
     });
 
+    // Enviar notificação por email se for processo Target
+    if (inspection?.process_type === "instalacao_entrada_target") {
+      try {
+        console.log("Enviando notificação de inspeção Target finalizada...");
+        
+        const { data: emailData, error: emailError } = await supabase.functions.invoke(
+          "send-inspection-notification",
+          {
+            body: {
+              id: inspection.id,
+              model: inspection.model,
+              serial_number: inspection.serial_number,
+              horimeter: inspection.horimeter,
+              inspection_date: inspection.inspection_date,
+              general_observations: inspection.general_observations,
+              has_fault_codes: inspection.has_fault_codes,
+              fault_codes_description: inspection.fault_codes_description,
+              process_type: inspection.process_type,
+            },
+          }
+        );
+
+        if (emailError) {
+          console.error("Erro ao enviar notificação:", emailError);
+          toast({
+            variant: "destructive",
+            title: "Aviso",
+            description: "Inspeção finalizada, mas houve erro ao enviar notificações por email.",
+          });
+        } else {
+          console.log("Notificação enviada com sucesso:", emailData);
+          toast({
+            title: "Notificações enviadas!",
+            description: "Os supervisores foram notificados por email.",
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao chamar edge function:", error);
+      }
+    }
+
     await fetchInspection();
   };
 
