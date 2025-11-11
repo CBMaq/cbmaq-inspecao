@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [processTypeFilter, setProcessTypeFilter] = useState<string>("all");
   const [userName, setUserName] = useState<string>("");
   const [userRoles, setUserRoles] = useState<string[]>([]);
 
@@ -93,7 +94,9 @@ export default function Dashboard() {
       inspection.serial_number.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || inspection.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesProcessType =
+      processTypeFilter === "all" || inspection.process_type === processTypeFilter;
+    return matchesSearch && matchesStatus && matchesProcessType;
   });
 
   return (
@@ -256,6 +259,17 @@ export default function Dashboard() {
                     <SelectItem value="reprovada">Reprovada</SelectItem>
                   </SelectContent>
                 </Select>
+                <Select value={processTypeFilter} onValueChange={setProcessTypeFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="Tipo de Processo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Tipos</SelectItem>
+                    <SelectItem value="entrada_cbmaq">Entrada CBMAQ</SelectItem>
+                    <SelectItem value="instalacao_entrada_target">Instalação Target</SelectItem>
+                    <SelectItem value="saida_cbmaq">Saída CBMAQ</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
@@ -273,11 +287,11 @@ export default function Dashboard() {
                 <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Nenhuma inspeção encontrada</h3>
                 <p className="text-muted-foreground mb-4">
-                  {searchTerm || statusFilter !== "all"
+                  {searchTerm || statusFilter !== "all" || processTypeFilter !== "all"
                     ? "Tente ajustar os filtros de busca"
                     : "Nenhuma inspeção cadastrada ainda"}
                 </p>
-                {!searchTerm && statusFilter === "all" && userRoles.includes('admin') && (
+                {!searchTerm && statusFilter === "all" && processTypeFilter === "all" && userRoles.includes('admin') && (
                   <Button onClick={() => navigate("/nova-inspecao")}>
                     <Plus className="mr-2 h-4 w-4" />
                     Nova Inspeção
