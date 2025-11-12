@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Image as ImageIcon, Maximize2 } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface PhotoUploadProps {
   inspectionId: string;
@@ -21,6 +21,7 @@ export function PhotoUpload({ inspectionId, photoType, label, onPhotoUploaded }:
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(100);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -230,13 +231,51 @@ export function PhotoUpload({ inspectionId, photoType, label, onPhotoUploaded }:
         </div>
       )}
 
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0">
-          <img
-            src={selectedImage || ""}
-            alt="Imagem ampliada"
-            className="w-full h-full object-contain"
-          />
+      <Dialog open={!!selectedImage} onOpenChange={() => {
+        setSelectedImage(null);
+        setZoom(100);
+      }}>
+        <DialogContent className="max-w-6xl max-h-[90vh]">
+          <DialogTitle className="sr-only">Visualização de imagem</DialogTitle>
+          <DialogDescription className="sr-only">
+            Imagem ampliada com controles de zoom
+          </DialogDescription>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setZoom(Math.max(50, zoom - 25))}
+                disabled={zoom <= 50}
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <span className="text-sm font-medium min-w-[60px] text-center">{zoom}%</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setZoom(Math.min(200, zoom + 25))}
+                disabled={zoom >= 200}
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setZoom(100)}
+              >
+                Resetar
+              </Button>
+            </div>
+            <div className="overflow-auto max-h-[calc(90vh-120px)] flex items-center justify-center">
+              <img 
+                src={selectedImage || ""} 
+                alt="Foto ampliada" 
+                style={{ width: `${zoom}%` }}
+                className="object-contain"
+              />
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
