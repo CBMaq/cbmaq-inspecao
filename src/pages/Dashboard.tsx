@@ -266,7 +266,7 @@ export default function Dashboard() {
                   <SelectContent>
                     <SelectItem value="all">Todos os Tipos</SelectItem>
                     <SelectItem value="entrada_cbmaq">Entrada CBMAQ</SelectItem>
-                    <SelectItem value="instalacao_entrada_target">Instalação Target</SelectItem>
+                    <SelectItem value="instalacao_entrada_target">PDI Target</SelectItem>
                     <SelectItem value="saida_cbmaq">Saída CBMAQ</SelectItem>
                   </SelectContent>
                 </Select>
