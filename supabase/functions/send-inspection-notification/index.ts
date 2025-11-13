@@ -58,6 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log(`Encontrados ${supervisors.length} supervisores`);
+    console.log("Emails dos supervisores:", supervisors.map(s => s.email).join(", "));
 
     // Buscar itens da inspeção
     const { data: items } = await supabase
@@ -66,8 +67,9 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("inspection_id", inspectionData.id);
 
     // Construir HTML do email
-    const appUrl = supabaseUrl.replace('.supabase.co', '.lovable.app');
+    const appUrl = "https://webhbnhgsbvlynseiloc.lovableproject.com";
     const inspectionUrl = `${appUrl}/inspecao/${inspectionData.id}`;
+    console.log("URL da inspeção:", inspectionUrl);
 
     const itemsHtml = items && items.length > 0 ? `
       <div style="margin: 20px 0; padding: 15px; background-color: #f9fafb; border-radius: 8px;">
@@ -156,28 +158,38 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Enviar email para todos os supervisores
-    const emailPromises = supervisors.map(supervisor => 
-      resend.emails.send({
-        from: "CBMaq Inspeções <notificacoes@cbmaq.com.br>",
-        to: [supervisor.email],
-        subject: `🔔 PDI Target Finalizado - ${inspectionData.model}`,
-        html: emailHtml,
+    // Enviar emails para os supervisores
+    const emailResults = await Promise.allSettled(
+      supervisors.map(async (supervisor) => {
+        console.log(`Enviando email para: ${supervisor.email}`);
+        try {
+          const result = await resend.emails.send({
+            from: "CBMaq Notificações <notificacoes@cbmaq.com.br>",
+            to: [supervisor.email],
+            subject: `🔔 PDI Target Finalizado - ${inspectionData.model}`,
+            html: emailHtml,
+          });
+          console.log(`✓ Email enviado com sucesso para ${supervisor.email}:`, result);
+          return { success: true, email: supervisor.email, result };
+        } catch (error) {
+          console.error(`✗ Erro ao enviar email para ${supervisor.email}:`, error);
+          return { success: false, email: supervisor.email, error };
+        }
       })
     );
-
-    const results = await Promise.allSettled(emailPromises);
     
-    const successful = results.filter(r => r.status === 'fulfilled').length;
-    const failed = results.filter(r => r.status === 'rejected').length;
+    const successful = emailResults.filter(r => r.status === 'fulfilled' && r.value.success).length;
+    const failed = emailResults.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length;
 
-    console.log(`Emails enviados: ${successful} sucesso, ${failed} falhas`);
+    console.log(`=== RESUMO DO ENVIO ===`);
+    console.log(`✓ Emails enviados com sucesso: ${successful}`);
+    console.log(`✗ Emails com falha: ${failed}`);
 
     if (failed > 0) {
-      const errors = results
+      const errors = emailResults
         .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
         .map(r => r.reason);
-      console.error("Erros ao enviar emails:", errors);
+      console.error("Detalhes dos erros:", errors);
     }
 
     return new Response(

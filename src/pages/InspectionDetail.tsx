@@ -401,7 +401,15 @@ export default function InspectionDetail() {
     // Enviar notificação por email se for processo Target
     if (inspection?.process_type === "instalacao_entrada_target") {
       try {
-        console.log("Enviando notificação de inspeção Target finalizada...");
+        console.log("=== ENVIANDO NOTIFICAÇÃO DE INSPEÇÃO TARGET ===");
+        console.log("Dados da inspeção:", {
+          id: inspection.id,
+          model: inspection.model,
+          serial_number: inspection.serial_number,
+          process_type: inspection.process_type,
+          horimeter: inspection.horimeter,
+          inspection_date: inspection.inspection_date,
+        });
         
         const { data: emailData, error: emailError } = await supabase.functions.invoke(
           "send-inspection-notification",
@@ -420,22 +428,33 @@ export default function InspectionDetail() {
           }
         );
 
+        console.log("Resposta da edge function:", { 
+          data: emailData, 
+          error: emailError 
+        });
+
         if (emailError) {
-          console.error("Erro ao enviar notificação:", emailError);
+          console.error("Erro completo ao enviar notificação:", JSON.stringify(emailError, null, 2));
           toast({
             variant: "destructive",
             title: "Aviso",
-            description: "Inspeção finalizada, mas houve erro ao enviar notificações por email.",
+            description: `Inspeção finalizada, mas houve erro ao enviar notificações: ${emailError.message || 'Erro desconhecido'}`,
           });
         } else {
-          console.log("Notificação enviada com sucesso:", emailData);
+          console.log("✓ Notificação enviada com sucesso:", emailData);
           toast({
             title: "Notificações enviadas!",
             description: "Os supervisores foram notificados por email.",
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Erro ao chamar edge function:", error);
+        console.error("Detalhes do erro:", JSON.stringify(error, null, 2));
+        toast({
+          variant: "destructive",
+          title: "Erro ao enviar notificações",
+          description: error.message || "Erro desconhecido ao chamar a função de envio",
+        });
       }
     }
 
