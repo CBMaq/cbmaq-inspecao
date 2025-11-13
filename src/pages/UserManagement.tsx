@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, Shield, User } from "lucide-react";
+import { ArrowLeft, Shield, User, Mail, Send } from "lucide-react";
 import { NewUserDialog } from "@/components/NewUserDialog";
 import { ResetPasswordDialog } from "@/components/ResetPasswordDialog";
 import { TechnicianManagement } from "@/components/TechnicianManagement";
@@ -24,6 +24,7 @@ export default function UserManagement() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
 
   useEffect(() => {
     checkAdminAccess();
@@ -146,6 +147,42 @@ export default function UserManagement() {
     );
   };
 
+  const sendTestEmail = async () => {
+    setSendingTestEmail(true);
+    try {
+      console.log("Enviando email de teste...");
+      
+      const { data, error } = await supabase.functions.invoke(
+        "send-inspection-notification?test=true",
+        { 
+          method: "POST",
+          body: {} 
+        }
+      );
+
+      console.log("Resposta do teste:", { data, error });
+
+      if (error) {
+        console.error("Erro ao enviar email de teste:", error);
+        toast.error("Erro ao enviar email de teste", {
+          description: error.message || "Não foi possível enviar o email de teste",
+        });
+        return;
+      }
+
+      toast.success("Email de teste enviado!", {
+        description: `Email enviado para ${data?.sent || 0} supervisor(es) CBMaq`,
+      });
+    } catch (error: any) {
+      console.error("Erro ao enviar email de teste:", error);
+      toast.error("Erro ao enviar email de teste", {
+        description: error.message || "Erro desconhecido",
+      });
+    } finally {
+      setSendingTestEmail(false);
+    }
+  };
+
   if (!isAdmin) {
     return null;
   }
@@ -247,6 +284,34 @@ export default function UserManagement() {
         </Card>
 
         <TechnicianManagement />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Teste de Notificações
+            </CardTitle>
+            <CardDescription>
+              Envie um email de teste para verificar o funcionamento do sistema de notificações
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Este botão enviará um email de teste para todos os supervisores com email @cbmaq.com.br. 
+                O email conterá dados fictícios de uma inspeção para fins de teste.
+              </p>
+              <Button 
+                onClick={sendTestEmail} 
+                disabled={sendingTestEmail}
+                className="w-full sm:w-auto"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                {sendingTestEmail ? "Enviando..." : "Enviar Email de Teste"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

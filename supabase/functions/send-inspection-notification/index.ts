@@ -29,9 +29,27 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log("Iniciando envio de notificação de inspeção...");
+    // Verificar se é um teste
+    const url = new URL(req.url);
+    const isTest = url.searchParams.get("test") === "true";
     
-    const inspectionData: InspectionData = await req.json();
+    console.log("Iniciando envio de notificação de inspeção...");
+    console.log("Modo de teste:", isTest);
+    
+    const inspectionData: InspectionData = isTest 
+      ? {
+          id: "test-" + Date.now(),
+          model: "ESCAVADEIRA FR560F (TESTE)",
+          serial_number: "TEST-12345",
+          horimeter: 150,
+          inspection_date: new Date().toISOString(),
+          general_observations: "Este é um email de teste do sistema de notificações.",
+          has_fault_codes: false,
+          fault_codes_description: "",
+          process_type: "instalacao_entrada_target",
+        }
+      : await req.json();
+    
     console.log("Dados da inspeção recebidos:", inspectionData.id);
 
     // Criar cliente Supabase com service role
@@ -60,15 +78,32 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Encontrados ${supervisors.length} supervisores`);
     console.log("Emails dos supervisores:", supervisors.map(s => s.email).join(", "));
 
-    // Buscar itens da inspeção
-    const { data: items } = await supabase
-      .from("inspection_items")
-      .select("category, item_description, entry_status, problem_description")
-      .eq("inspection_id", inspectionData.id);
+    // Buscar itens da inspeção (ou usar dados de teste)
+    const { data: items } = isTest 
+      ? { data: [
+          {
+            category: "Motor",
+            item_description: "Verificação de óleo (TESTE)",
+            entry_status: "conforme",
+            problem_description: null,
+          },
+          {
+            category: "Hidráulico",
+            item_description: "Vazamentos (TESTE)",
+            entry_status: "nao_conforme",
+            problem_description: "Pequeno vazamento identificado",
+          },
+        ]}
+      : await supabase
+          .from("inspection_items")
+          .select("category, item_description, entry_status, problem_description")
+          .eq("inspection_id", inspectionData.id);
 
     // Construir HTML do email
     const appUrl = "https://webhbnhgsbvlynseiloc.lovableproject.com";
-    const inspectionUrl = `${appUrl}/inspecao/${inspectionData.id}`;
+    const inspectionUrl = isTest 
+      ? `${appUrl}` 
+      : `${appUrl}/inspecao/${inspectionData.id}`;
     console.log("URL da inspeção:", inspectionUrl);
 
     const itemsHtml = items && items.length > 0 ? `
@@ -166,7 +201,9 @@ const handler = async (req: Request): Promise<Response> => {
           const result = await resend.emails.send({
             from: "CBMaq Notificações <notificacoes@cbmaq.com.br>",
             to: [supervisor.email],
-            subject: `🔔 PDI Target Finalizado - ${inspectionData.model}`,
+            subject: isTest 
+              ? `🧪 TESTE - PDI Target Finalizado - ${inspectionData.model}`
+              : `🔔 PDI Target Finalizado - ${inspectionData.model}`,
             html: emailHtml,
           });
           console.log(`✓ Email enviado com sucesso para ${supervisor.email}:`, result);
