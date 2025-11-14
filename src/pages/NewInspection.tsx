@@ -225,6 +225,12 @@ export default function NewInspection() {
                           Saída CBMAQ
                         </Label>
                       </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="entrega_governo" id="entrega_governo" />
+                        <Label htmlFor="entrega_governo" className="font-normal cursor-pointer">
+                          Entrega Governo
+                        </Label>
+                      </div>
                     </RadioGroup>
                   </div>
                 </div>
