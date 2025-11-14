@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
 import { ProcessTypeBadge } from "@/components/ProcessTypeBadge";
-import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, AlertCircle, Shield, BarChart3, BookOpen } from "lucide-react";
+import { Plus, Search, LogOut, FileText, User, CheckCircle2, Clock, XCircle, AlertCircle, Shield, BarChart3, BookOpen, Truck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
@@ -16,7 +16,7 @@ import { InspectionNotifications } from "@/components/InspectionNotifications";
 interface Inspection {
   id: string;
   inspection_date: string;
-  process_type: "instalacao_entrada_target" | "entrada_cbmaq" | "saida_cbmaq";
+  process_type: "instalacao_entrada_target" | "entrada_cbmaq" | "saida_cbmaq" | "entrega_governo";
   model: string;
   serial_number: string;
   status: "em_andamento" | "finalizada" | "aprovada" | "reprovada";
@@ -139,10 +139,16 @@ export default function Dashboard() {
                 Catálogo
               </Button>
               {(userRoles.includes('supervisor') || userRoles.includes('admin')) && (
-                <Button variant="outline" size="sm" onClick={() => navigate("/relatorios")}>
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Relatórios
-                </Button>
+                <>
+                  <Button variant="outline" size="sm" onClick={() => navigate("/relatorios")}>
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Relatórios
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => navigate("/entregas-governo")}>
+                    <Truck className="h-4 w-4 mr-2" />
+                    Entregas Governo
+                  </Button>
+                </>
               )}
               {userRoles.includes('admin') && (
                 <>
@@ -268,6 +274,7 @@ export default function Dashboard() {
                     <SelectItem value="entrada_cbmaq">Entrada CBMAQ</SelectItem>
                     <SelectItem value="instalacao_entrada_target">PDI Target</SelectItem>
                     <SelectItem value="saida_cbmaq">Saída CBMAQ</SelectItem>
+                    <SelectItem value="entrega_governo">Entrega Governo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

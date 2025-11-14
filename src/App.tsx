@@ -11,6 +11,7 @@ import UserManagement from "./pages/UserManagement";
 import Reports from "./pages/Reports";
 import MachineCatalog from "./pages/MachineCatalog";
 import CatalogManagement from "./pages/CatalogManagement";
+import GovernmentDeliveryDashboard from "./pages/GovernmentDeliveryDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/relatorios" element={<Reports />} />
           <Route path="/catalogo" element={<MachineCatalog />} />
           <Route path="/admin/catalogo" element={<CatalogManagement />} />
+          <Route path="/entregas-governo" element={<GovernmentDeliveryDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
