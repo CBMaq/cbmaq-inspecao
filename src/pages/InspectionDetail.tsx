@@ -14,6 +14,7 @@ import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
 import { ProcessTypeBadge } from "@/components/ProcessTypeBadge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MediaUpload } from "@/components/MediaUpload";
+import { GovernmentDeliverySection } from "@/components/GovernmentDeliverySection";
 import { SignaturePad } from "@/components/SignaturePad";
 import { PDFExport } from "@/components/PDFExport";
 import { ApprovalDialog } from "@/components/ApprovalDialog";
@@ -26,7 +27,7 @@ import { z } from "zod";
 interface InspectionData {
   id: string;
   inspection_date: string;
-  process_type: "instalacao_entrada_target" | "entrada_cbmaq" | "saida_cbmaq";
+  process_type: "instalacao_entrada_target" | "entrada_cbmaq" | "saida_cbmaq" | "entrega_governo";
   model: string;
   serial_number: string;
   horimeter: number;
@@ -611,6 +612,10 @@ export default function InspectionDetail() {
                 )}
               </CardContent>
             </Card>
+          )}
+
+          {inspection.process_type === "entrega_governo" && (
+            <GovernmentDeliverySection inspectionId={inspection.id} />
           )}
 
           <Card className="mb-6">

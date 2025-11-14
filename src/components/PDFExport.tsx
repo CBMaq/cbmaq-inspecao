@@ -6,7 +6,7 @@ import autoTable from "jspdf-autotable";
 interface InspectionData {
   id: string;
   inspection_date: string;
-  process_type: "instalacao_entrada_target" | "entrada_cbmaq" | "saida_cbmaq";
+  process_type: "instalacao_entrada_target" | "entrada_cbmaq" | "saida_cbmaq" | "entrega_governo";
   model: string;
   serial_number: string;
   horimeter: number;

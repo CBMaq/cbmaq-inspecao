@@ -11,6 +11,7 @@ import { ArrowLeft, Shield, User, Mail, Send } from "lucide-react";
 import { NewUserDialog } from "@/components/NewUserDialog";
 import { ResetPasswordDialog } from "@/components/ResetPasswordDialog";
 import { TechnicianManagement } from "@/components/TechnicianManagement";
+import { DriverManagement } from "@/components/DriverManagement";
 
 interface UserWithRole {
   id: string;
@@ -284,6 +285,8 @@ export default function UserManagement() {
         </Card>
 
         <TechnicianManagement />
+
+        <DriverManagement />
 
         <Card>
           <CardHeader>
