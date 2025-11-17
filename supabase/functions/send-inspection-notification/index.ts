@@ -200,7 +200,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.log(`Tentando enviar email para: ${supervisor.email}`);
         try {
           const result = await resend.emails.send({
-            from: "CBMaq Notificações <onboarding@resend.dev>", // Usando domínio padrão do Resend
+            from: "CBMaq Notificações <notificacoes@cbmaq.com.br>",
             to: [supervisor.email],
             subject: isTest 
               ? `🧪 TESTE - PDI Target Finalizado - ${inspectionData.model}`
