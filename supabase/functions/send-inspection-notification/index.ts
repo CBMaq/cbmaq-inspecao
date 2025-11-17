@@ -193,31 +193,38 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Enviar emails para os supervisores
+    // Enviar emails para os supervisores com delay para respeitar rate limit
     console.log("=== INICIANDO ENVIO DE EMAILS ===");
-    const emailResults = await Promise.allSettled(
-      supervisors.map(async (supervisor) => {
-        console.log(`Tentando enviar email para: ${supervisor.email}`);
-        try {
-          const result = await resend.emails.send({
-            from: "CBMaq Notificações <notificacoes@cbmaq.com.br>",
-            to: [supervisor.email],
-            subject: isTest 
-              ? `🧪 TESTE - PDI Target Finalizado - ${inspectionData.model}`
-              : `🔔 PDI Target Finalizado - ${inspectionData.model}`,
-            html: emailHtml,
-          });
-          console.log(`✓ Email enviado com sucesso para ${supervisor.email}:`, JSON.stringify(result, null, 2));
-          return { success: true, email: supervisor.email, result };
-        } catch (error: any) {
-          console.error(`✗ Erro ao enviar email para ${supervisor.email}:`, JSON.stringify(error, null, 2));
-          return { success: false, email: supervisor.email, error: error.message || error };
-        }
-      })
-    );
+    const emailResults = [];
+    
+    for (let i = 0; i < supervisors.length; i++) {
+      const supervisor = supervisors[i];
+      console.log(`Tentando enviar email para: ${supervisor.email} (${i + 1}/${supervisors.length})`);
+      
+      try {
+        const result = await resend.emails.send({
+          from: "CBMaq Notificações <notificacoes@cbmaq.com.br>",
+          to: [supervisor.email],
+          subject: isTest 
+            ? `🧪 TESTE - PDI Target Finalizado - ${inspectionData.model}`
+            : `🔔 PDI Target Finalizado - ${inspectionData.model}`,
+          html: emailHtml,
+        });
+        console.log(`✓ Email enviado com sucesso para ${supervisor.email}:`, JSON.stringify(result, null, 2));
+        emailResults.push({ status: 'fulfilled', value: { success: true, email: supervisor.email, result } });
+      } catch (error: any) {
+        console.error(`✗ Erro ao enviar email para ${supervisor.email}:`, JSON.stringify(error, null, 2));
+        emailResults.push({ status: 'fulfilled', value: { success: false, email: supervisor.email, error: error.message || error } });
+      }
+      
+      // Delay de 600ms entre emails para respeitar rate limit de 2 req/s
+      if (i < supervisors.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
+    }
     
     const successful = emailResults.filter(r => r.status === 'fulfilled' && r.value.success).length;
-    const failed = emailResults.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length;
+    const failed = emailResults.filter(r => r.status === 'fulfilled' && !r.value.success).length;
 
     console.log(`=== RESUMO DO ENVIO ===`);
     console.log(`✓ Emails enviados com sucesso: ${successful}`);
@@ -227,8 +234,6 @@ const handler = async (req: Request): Promise<Response> => {
       emailResults.forEach((result, index) => {
         if (result.status === 'fulfilled' && !result.value.success) {
           console.error(`Erro no email ${index + 1}:`, JSON.stringify(result.value.error, null, 2));
-        } else if (result.status === 'rejected') {
-          console.error(`Email ${index + 1} rejeitado:`, JSON.stringify(result.reason, null, 2));
         }
       });
     }
