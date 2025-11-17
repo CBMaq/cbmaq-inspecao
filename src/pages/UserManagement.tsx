@@ -153,15 +153,24 @@ export default function UserManagement() {
     try {
       console.log("Enviando email de teste...");
       
-      const { data, error } = await supabase.functions.invoke(
-        "send-inspection-notification?test=true",
-        { 
-          method: "POST",
-          body: {} 
+      // Fazer chamada HTTP direta com query parameter
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-inspection-notification?test=true`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({}),
         }
       );
 
-      console.log("Resposta do teste:", { data, error });
+      const data = await response.json();
+      const error = !response.ok ? data : null;
+
+      console.log("Resposta do teste:", { data, error, status: response.status });
 
       if (error) {
         console.error("Erro ao enviar email de teste:", error);

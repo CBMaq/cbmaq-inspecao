@@ -194,23 +194,24 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     // Enviar emails para os supervisores
+    console.log("=== INICIANDO ENVIO DE EMAILS ===");
     const emailResults = await Promise.allSettled(
       supervisors.map(async (supervisor) => {
-        console.log(`Enviando email para: ${supervisor.email}`);
+        console.log(`Tentando enviar email para: ${supervisor.email}`);
         try {
           const result = await resend.emails.send({
-            from: "CBMaq Notificações <notificacoes@cbmaq.com.br>",
+            from: "CBMaq Notificações <onboarding@resend.dev>", // Usando domínio padrão do Resend
             to: [supervisor.email],
             subject: isTest 
               ? `🧪 TESTE - PDI Target Finalizado - ${inspectionData.model}`
               : `🔔 PDI Target Finalizado - ${inspectionData.model}`,
             html: emailHtml,
           });
-          console.log(`✓ Email enviado com sucesso para ${supervisor.email}:`, result);
+          console.log(`✓ Email enviado com sucesso para ${supervisor.email}:`, JSON.stringify(result, null, 2));
           return { success: true, email: supervisor.email, result };
-        } catch (error) {
-          console.error(`✗ Erro ao enviar email para ${supervisor.email}:`, error);
-          return { success: false, email: supervisor.email, error };
+        } catch (error: any) {
+          console.error(`✗ Erro ao enviar email para ${supervisor.email}:`, JSON.stringify(error, null, 2));
+          return { success: false, email: supervisor.email, error: error.message || error };
         }
       })
     );
@@ -223,10 +224,13 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`✗ Emails com falha: ${failed}`);
 
     if (failed > 0) {
-      const errors = emailResults
-        .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
-        .map(r => r.reason);
-      console.error("Detalhes dos erros:", errors);
+      emailResults.forEach((result, index) => {
+        if (result.status === 'fulfilled' && !result.value.success) {
+          console.error(`Erro no email ${index + 1}:`, JSON.stringify(result.value.error, null, 2));
+        } else if (result.status === 'rejected') {
+          console.error(`Email ${index + 1} rejeitado:`, JSON.stringify(result.reason, null, 2));
+        }
+      });
     }
 
     return new Response(
