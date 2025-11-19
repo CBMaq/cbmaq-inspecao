@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Inspection validation schema
 export const inspectionSchema = z.object({
   inspection_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
-  process_type: z.enum(['instalacao_entrada_target', 'entrada_cbmaq', 'saida_cbmaq'], {
+  process_type: z.enum(['instalacao_entrada_target', 'entrada_cbmaq', 'saida_cbmaq', 'entrada_dnm', 'saida_dnm', 'entrega_governo'], {
     errorMap: () => ({ message: 'Tipo de processo inválido' }),
   }),
   model: z.string().trim().min(1, 'Modelo é obrigatório').max(100, 'Modelo muito longo'),
