@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
-import { ArrowLeft, Save, CheckCircle2, Camera, FileText, XCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, CheckCircle2, Camera, FileText, XCircle, Trash2, Loader2 } from "lucide-react";
 import { InspectionStatusBadge } from "@/components/InspectionStatusBadge";
 import { ProcessTypeBadge } from "@/components/ProcessTypeBadge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -198,6 +198,9 @@ export default function InspectionDetail() {
   const [confirmFinalizeOpen, setConfirmFinalizeOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [technicians, setTechnicians] = useState<Array<{ id: string; name: string }>>([]);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialLoadRef = useRef(true);
 
   useEffect(() => {
     if (id) {
@@ -206,6 +209,84 @@ export default function InspectionDetail() {
       fetchTechnicians();
     }
   }, [id]);
+
+  // Auto-save effect
+  useEffect(() => {
+    // Skip auto-save on initial load
+    if (isInitialLoadRef.current) {
+      isInitialLoadRef.current = false;
+      return;
+    }
+
+    // Skip if no inspection loaded yet or already saving
+    if (!inspection || loading || saving) return;
+
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    // Set new timer for auto-save
+    setAutoSaveStatus('idle');
+    autoSaveTimerRef.current = setTimeout(() => {
+      handleAutoSave();
+    }, 2000); // 2 seconds debounce
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [items, inspection?.general_observations, inspection?.has_fault_codes, inspection?.fault_codes_description, inspection?.codes_corrected]);
+
+  const handleAutoSave = async () => {
+    if (!inspection || saving) return;
+
+    setAutoSaveStatus('saving');
+
+    try {
+      // Save inspection fields
+      await supabase
+        .from("inspections")
+        .update({
+          general_observations: inspection.general_observations,
+          has_fault_codes: inspection.has_fault_codes,
+          fault_codes_description: inspection.fault_codes_description,
+          codes_corrected: inspection.codes_corrected,
+        })
+        .eq("id", id);
+
+      // Delete existing items
+      await supabase
+        .from("inspection_items")
+        .delete()
+        .eq("inspection_id", id);
+
+      // Insert updated items
+      const itemsToInsert = items.map((item) => ({
+        inspection_id: id,
+        category: item.category,
+        item_description: item.item_description,
+        entry_status: item.entry_status,
+        exit_status: item.exit_status,
+        problem_description: item.problem_description,
+      }));
+
+      await supabase
+        .from("inspection_items")
+        .insert(itemsToInsert);
+
+      setAutoSaveStatus('saved');
+      
+      // Reset to idle after 2 seconds
+      setTimeout(() => {
+        setAutoSaveStatus('idle');
+      }, 2000);
+    } catch (error: any) {
+      console.error("Erro no auto-save:", error);
+      setAutoSaveStatus('idle');
+    }
+  };
 
   const fetchUserRoles = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -295,6 +376,11 @@ export default function InspectionDetail() {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     setItems(newItems);
+  };
+
+  const updateInspectionField = (field: keyof InspectionData, value: any) => {
+    if (!inspection) return;
+    setInspection({ ...inspection, [field]: value });
   };
 
   // Determine which columns to show based on process type
@@ -570,7 +656,21 @@ export default function InspectionDetail() {
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <InspectionStatusBadge status={inspection.status} />
+                <div className="flex items-center gap-3">
+                  {autoSaveStatus === 'saving' && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Salvando...</span>
+                    </div>
+                  )}
+                  {autoSaveStatus === 'saved' && (
+                    <div className="flex items-center gap-2 text-sm text-success">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>Salvo automaticamente</span>
+                    </div>
+                  )}
+                  <InspectionStatusBadge status={inspection.status} />
+                </div>
                 <ProcessTypeBadge processType={inspection.process_type} />
               </div>
             </div>
@@ -802,12 +902,8 @@ export default function InspectionDetail() {
                 <Checkbox
                   id="has_fault_codes"
                   checked={inspection.has_fault_codes}
-                  onCheckedChange={async (checked) => {
-                    await supabase
-                      .from("inspections")
-                      .update({ has_fault_codes: checked as boolean })
-                      .eq("id", id);
-                    setInspection({ ...inspection, has_fault_codes: checked as boolean });
+                  onCheckedChange={(checked) => {
+                    updateInspectionField('has_fault_codes', checked as boolean);
                   }}
                 />
                 <Label htmlFor="has_fault_codes" className="cursor-pointer">
@@ -821,49 +917,24 @@ export default function InspectionDetail() {
                     <Label htmlFor="fault_codes" className="mb-2 block">
                       Quais códigos?
                     </Label>
-                    <Textarea
-                      id="fault_codes"
-                      value={inspection.fault_codes_description || ""}
-                      onChange={(e) =>
-                        setInspection({ ...inspection, fault_codes_description: e.target.value })
-                      }
-                      onBlur={async (e) => {
-                        try {
-                          const validated = observationSchema.parse({ 
-                            fault_codes_description: e.target.value 
-                          });
-                          await supabase
-                            .from("inspections")
-                            .update({ fault_codes_description: validated.fault_codes_description })
-                            .eq("id", id);
-                        } catch (error) {
-                          if (error instanceof z.ZodError) {
-                            toast({
-                              variant: "destructive",
-                              title: "Texto muito longo",
-                              description: error.errors[0].message,
-                            });
-                            // Revert to previous value
-                            fetchInspection();
-                          }
-                        }
-                      }}
-                      placeholder="Liste os códigos de falha..."
-                      rows={3}
-                      maxLength={1000}
-                    />
+                <Textarea
+                  id="fault_codes"
+                  value={inspection.fault_codes_description || ""}
+                  onChange={(e) =>
+                    updateInspectionField('fault_codes_description', e.target.value)
+                  }
+                  placeholder="Liste os códigos de falha..."
+                  rows={3}
+                  maxLength={1000}
+                />
                   </div>
 
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="codes_corrected"
                       checked={inspection.codes_corrected}
-                      onCheckedChange={async (checked) => {
-                        await supabase
-                          .from("inspections")
-                          .update({ codes_corrected: checked as boolean })
-                          .eq("id", id);
-                        setInspection({ ...inspection, codes_corrected: checked as boolean });
+                      onCheckedChange={(checked) => {
+                        updateInspectionField('codes_corrected', checked as boolean);
                       }}
                     />
                     <Label htmlFor="codes_corrected" className="cursor-pointer">
@@ -883,29 +954,8 @@ export default function InspectionDetail() {
               <Textarea
                 value={inspection.general_observations || ""}
                 onChange={(e) =>
-                  setInspection({ ...inspection, general_observations: e.target.value })
+                  updateInspectionField('general_observations', e.target.value)
                 }
-                onBlur={async (e) => {
-                  try {
-                    const validated = observationSchema.parse({ 
-                      general_observations: e.target.value 
-                    });
-                    await supabase
-                      .from("inspections")
-                      .update({ general_observations: validated.general_observations })
-                      .eq("id", id);
-                  } catch (error) {
-                    if (error instanceof z.ZodError) {
-                      toast({
-                        variant: "destructive",
-                        title: "Texto muito longo",
-                        description: error.errors[0].message,
-                      });
-                      // Revert to previous value
-                      fetchInspection();
-                    }
-                  }
-                }}
                 placeholder="Adicione observações gerais sobre a inspeção..."
                 rows={5}
                 maxLength={2000}
