@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 
 interface ProcessTypeBadgeProps {
-  processType: "instalacao_entrada_target" | "entrada_cbmaq" | "saida_cbmaq" | "entrega_governo";
+  processType: "instalacao_entrada_target" | "entrada_cbmaq" | "saida_cbmaq" | "entrega_governo" | "entrada_dnm" | "saida_dnm";
 }
 
 export const ProcessTypeBadge = ({ processType }: ProcessTypeBadgeProps) => {
@@ -17,6 +17,14 @@ export const ProcessTypeBadge = ({ processType }: ProcessTypeBadgeProps) => {
     saida_cbmaq: { 
       className: "bg-orange-500 text-white hover:bg-orange-600", 
       label: "Saída CBMAQ" 
+    },
+    entrada_dnm: { 
+      className: "bg-cyan-500 text-white hover:bg-cyan-600", 
+      label: "Entrada DNM" 
+    },
+    saida_dnm: { 
+      className: "bg-teal-500 text-white hover:bg-teal-600", 
+      label: "Saída DNM" 
     },
     entrega_governo: { 
       className: "bg-purple-500 text-white hover:bg-purple-600", 

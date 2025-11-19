@@ -226,6 +226,18 @@ export default function NewInspection() {
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="entrada_dnm" id="entrada_dnm" />
+                        <Label htmlFor="entrada_dnm" className="font-normal cursor-pointer">
+                          Entrada DNM
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="saida_dnm" id="saida_dnm" />
+                        <Label htmlFor="saida_dnm" className="font-normal cursor-pointer">
+                          Saída DNM
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="entrega_governo" id="entrega_governo" />
                         <Label htmlFor="entrega_governo" className="font-normal cursor-pointer">
                           Entrega Governo
