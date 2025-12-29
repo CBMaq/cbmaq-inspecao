@@ -7,10 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { AuthGuard } from "@/components/AuthGuard";
-import { ArrowLeft, Save, Search } from "lucide-react";
+import { ArrowLeft, Save, Search, CalendarIcon } from "lucide-react";
 import { inspectionSchema } from "@/lib/validations";
 import { z } from "zod";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface MachineModel {
   id: string;
@@ -27,6 +33,7 @@ export default function NewInspection() {
   const modelId = searchParams.get("modelId");
   const [selectedModel, setSelectedModel] = useState<MachineModel | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (modelId) {
@@ -83,6 +90,8 @@ export default function NewInspection() {
         serial_number: formData.get("serial_number") as string,
         horimeter: isNaN(horimeterValue) ? 0 : horimeterValue,
         freight_responsible: formData.get("freight_responsible") as string || "",
+        initial_label: formData.get("initial_label") as string || "",
+        deadline_date: deadlineDate ? format(deadlineDate, "yyyy-MM-dd") : "",
       };
 
       const validated = inspectionSchema.parse(formDataObj);
@@ -96,6 +105,8 @@ export default function NewInspection() {
           serial_number: validated.serial_number,
           horimeter: validated.horimeter,
           freight_responsible: validated.freight_responsible || null,
+          initial_label: validated.initial_label || null,
+          deadline_date: validated.deadline_date || null,
           created_by: user.id,
           status: "em_andamento",
           model_id: selectedModel?.id || null,
@@ -306,6 +317,46 @@ export default function NewInspection() {
                     type="text"
                     placeholder="Nome da transportadora"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="initial_label">
+                    Observação / Rótulo (Opcional)
+                  </Label>
+                  <Textarea
+                    id="initial_label"
+                    name="initial_label"
+                    placeholder="Ex: Necessário Tanque cheio, CODEVASF, etc."
+                    className="min-h-[80px]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Prazo para Conclusão (Opcional)</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !deadlineDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {deadlineDate ? format(deadlineDate, "PPP", { locale: ptBR }) : <span>Selecione uma data</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={deadlineDate}
+                        onSelect={setDeadlineDate}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                        locale={ptBR}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div className="flex gap-3 justify-end">

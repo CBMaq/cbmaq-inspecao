@@ -95,6 +95,7 @@ export type Database = {
           codes_corrected: boolean | null
           created_at: string | null
           created_by: string
+          deadline_date: string | null
           driver_documents_url: string | null
           driver_name: string | null
           driver_signature: string | null
@@ -113,6 +114,7 @@ export type Database = {
           has_fault_codes: boolean | null
           horimeter: number
           id: string
+          initial_label: string | null
           inspection_date: string
           model: string
           model_id: string | null
@@ -128,6 +130,7 @@ export type Database = {
           codes_corrected?: boolean | null
           created_at?: string | null
           created_by: string
+          deadline_date?: string | null
           driver_documents_url?: string | null
           driver_name?: string | null
           driver_signature?: string | null
@@ -146,6 +149,7 @@ export type Database = {
           has_fault_codes?: boolean | null
           horimeter: number
           id?: string
+          initial_label?: string | null
           inspection_date?: string
           model: string
           model_id?: string | null
@@ -161,6 +165,7 @@ export type Database = {
           codes_corrected?: boolean | null
           created_at?: string | null
           created_by?: string
+          deadline_date?: string | null
           driver_documents_url?: string | null
           driver_name?: string | null
           driver_signature?: string | null
@@ -179,6 +184,7 @@ export type Database = {
           has_fault_codes?: boolean | null
           horimeter?: number
           id?: string
+          initial_label?: string | null
           inspection_date?: string
           model?: string
           model_id?: string | null
