@@ -11,6 +11,8 @@ export const inspectionSchema = z.object({
   horimeter: z.number().int().min(0, 'Horímetro deve ser positivo').max(999999, 'Horímetro muito alto'),
   freight_responsible: z.string().trim().max(200, 'Texto muito longo').optional().or(z.literal('')),
   driver_name: z.string().trim().max(200, 'Nome muito longo').optional().or(z.literal('')),
+  initial_label: z.string().trim().max(500, 'Rótulo muito longo').optional().or(z.literal('')),
+  deadline_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida').optional().or(z.literal('')),
 });
 
 // Auth validation schemas
