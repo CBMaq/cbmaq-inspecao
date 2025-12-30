@@ -1026,6 +1026,11 @@ export default function InspectionDetail() {
                 photoType="toolbox"
                 label="Caixa de Ferramentas"
               />
+              <MediaUpload
+                inspectionId={id!}
+                photoType="washers"
+                label="Arruelas"
+              />
             </CardContent>
           </Card>
 
