@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { ArrowLeft, Shield, User, Mail, Send } from "lucide-react";
 import { NewUserDialog } from "@/components/NewUserDialog";
 import { ResetPasswordDialog } from "@/components/ResetPasswordDialog";
+import { EditUserDialog } from "@/components/EditUserDialog";
+import { DeleteUserDialog } from "@/components/DeleteUserDialog";
 import { TechnicianManagement } from "@/components/TechnicianManagement";
 import { DriverManagement } from "@/components/DriverManagement";
 
@@ -280,10 +282,23 @@ export default function UserManagement() {
                         </Select>
                       </TableCell>
                       <TableCell>
-                        <ResetPasswordDialog 
-                          userId={user.id} 
-                          userName={user.full_name}
-                        />
+                        <div className="flex items-center gap-1">
+                          <EditUserDialog
+                            userId={user.id}
+                            currentName={user.full_name}
+                            currentEmail={user.email || ""}
+                            onUserUpdated={fetchUsers}
+                          />
+                          <ResetPasswordDialog 
+                            userId={user.id} 
+                            userName={user.full_name}
+                          />
+                          <DeleteUserDialog
+                            userId={user.id}
+                            userName={user.full_name}
+                            onUserDeleted={fetchUsers}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
