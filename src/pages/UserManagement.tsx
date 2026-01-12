@@ -12,6 +12,7 @@ import { NewUserDialog } from "@/components/NewUserDialog";
 import { ResetPasswordDialog } from "@/components/ResetPasswordDialog";
 import { EditUserDialog } from "@/components/EditUserDialog";
 import { DeleteUserDialog } from "@/components/DeleteUserDialog";
+import { ToggleUserStatusButton } from "@/components/ToggleUserStatusButton";
 import { TechnicianManagement } from "@/components/TechnicianManagement";
 import { DriverManagement } from "@/components/DriverManagement";
 
@@ -20,6 +21,7 @@ interface UserWithRole {
   full_name: string;
   email?: string;
   role: string;
+  isActive: boolean;
 }
 
 export default function UserManagement() {
@@ -70,16 +72,19 @@ export default function UserManagement() {
 
       if (profilesError) throw profilesError;
 
+      // Get current session to call edge function for user status
+      const { data: { session } } = await supabase.auth.getSession();
+
       // Para cada perfil, verificar papel via RPC (bypass seguro de RLS)
       const usersWithRoles: UserWithRole[] = await Promise.all(
         (profiles || []).map(async (profile: any) => {
-          const [{ data: isAdmin }, { data: isSupervisor }] = await Promise.all([
+          const [{ data: isAdminRole }, { data: isSupervisor }] = await Promise.all([
             supabase.rpc("has_role", { _user_id: profile.id, _role: "admin" }),
             supabase.rpc("has_role", { _user_id: profile.id, _role: "supervisor" }),
           ]);
 
           let role: string = "tecnico";
-          if (Boolean(isAdmin)) role = "admin";
+          if (Boolean(isAdminRole)) role = "admin";
           else if (Boolean(isSupervisor)) role = "supervisor";
 
           return {
@@ -87,9 +92,37 @@ export default function UserManagement() {
             full_name: profile.full_name,
             email: profile.email,
             role,
+            isActive: true, // Default to active, will be checked via separate call if needed
           } as UserWithRole;
         })
       );
+
+      // Fetch user status from auth (via edge function)
+      try {
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-get-users-status`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token || ""}`,
+          },
+          body: JSON.stringify({ userIds: usersWithRoles.map(u => u.id) }),
+        });
+
+        if (response.ok) {
+          const statusData = await response.json();
+          if (statusData.users) {
+            usersWithRoles.forEach(user => {
+              const userStatus = statusData.users.find((u: any) => u.id === user.id);
+              if (userStatus) {
+                user.isActive = !userStatus.banned_until || new Date(userStatus.banned_until) < new Date();
+              }
+            });
+          }
+        }
+      } catch (statusError) {
+        console.error("Error fetching user statuses:", statusError);
+        // Continue with default active status
+      }
 
       setUsers(usersWithRoles);
     } catch (error) {
@@ -249,6 +282,7 @@ export default function UserManagement() {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Papel Atual</TableHead>
                     <TableHead>Alterar Papel</TableHead>
                     <TableHead>Ações</TableHead>
@@ -256,12 +290,17 @@ export default function UserManagement() {
                 </TableHeader>
                 <TableBody>
                   {users.map((user) => (
-                    <TableRow key={user.id}>
+                    <TableRow key={user.id} className={!user.isActive ? "opacity-60" : ""}>
                       <TableCell className="font-medium">
                         {user.full_name}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {user.email || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={user.isActive ? "default" : "secondary"}>
+                          {user.isActive ? "Ativo" : "Inativo"}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         {getRoleBadge(user.role)}
@@ -292,6 +331,12 @@ export default function UserManagement() {
                           <ResetPasswordDialog 
                             userId={user.id} 
                             userName={user.full_name}
+                          />
+                          <ToggleUserStatusButton
+                            userId={user.id}
+                            userName={user.full_name}
+                            isActive={user.isActive}
+                            onStatusChanged={fetchUsers}
                           />
                           <DeleteUserDialog
                             userId={user.id}
