@@ -90,6 +90,36 @@ Deno.serve(async (req) => {
 
     console.log(`Admin ${caller.id} deleting user ${userId}`);
 
+    // Check if user has inspections
+    const { data: inspections, error: inspectionsCheckError } = await supabaseAdmin
+      .from("inspections")
+      .select("id")
+      .eq("created_by", userId)
+      .limit(1);
+
+    if (inspectionsCheckError) {
+      console.error("Error checking inspections:", inspectionsCheckError);
+    }
+
+    if (inspections && inspections.length > 0) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Este usuário possui inspeções cadastradas. Não é possível excluí-lo. Considere desativá-lo ou reatribuir as inspeções primeiro." 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Unlink technicians (set user_id to null)
+    const { error: technicianUnlinkError } = await supabaseAdmin
+      .from("technicians")
+      .update({ user_id: null })
+      .eq("user_id", userId);
+
+    if (technicianUnlinkError) {
+      console.error("Error unlinking technicians:", technicianUnlinkError);
+    }
+
     // Delete user roles first
     const { error: rolesDeleteError } = await supabaseAdmin
       .from("user_roles")
@@ -116,7 +146,7 @@ Deno.serve(async (req) => {
     if (deleteError) {
       console.error("Error deleting user:", deleteError);
       return new Response(
-        JSON.stringify({ error: deleteError.message }),
+        JSON.stringify({ error: "Erro ao excluir usuário do sistema de autenticação" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
