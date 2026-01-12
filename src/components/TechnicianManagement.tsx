@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 
 interface Technician {
   id: string;
@@ -20,8 +20,11 @@ export function TechnicianManagement() {
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingTech, setEditingTech] = useState<Technician | null>(null);
   const [newTechId, setNewTechId] = useState("");
   const [newTechName, setNewTechName] = useState("");
+  const [editTechName, setEditTechName] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -80,6 +83,45 @@ export function TechnicianManagement() {
       setNewTechId("");
       setNewTechName("");
       setOpen(false);
+      fetchTechnicians();
+    }
+  };
+
+  const handleEditTechnician = (tech: Technician) => {
+    setEditingTech(tech);
+    setEditTechName(tech.name);
+    setEditOpen(true);
+  };
+
+  const handleUpdateTechnician = async () => {
+    if (!editingTech || !editTechName.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Campo obrigatório",
+        description: "Por favor, preencha o nome do técnico.",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("technicians")
+      .update({ name: editTechName.trim() })
+      .eq("id", editingTech.id);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar técnico",
+        description: error.message,
+      });
+    } else {
+      toast({
+        title: "Técnico atualizado!",
+        description: "O técnico foi atualizado com sucesso.",
+      });
+      setEditOpen(false);
+      setEditingTech(null);
+      setEditTechName("");
       fetchTechnicians();
     }
   };
@@ -181,13 +223,24 @@ export function TechnicianManagement() {
                     {new Date(tech.created_at).toLocaleDateString("pt-BR")}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteTechnician(tech.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditTechnician(tech)}
+                        title="Editar técnico"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteTechnician(tech.id)}
+                        title="Remover técnico"
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -195,6 +248,42 @@ export function TechnicianManagement() {
           </Table>
         )}
       </CardContent>
+
+      {/* Edit Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Técnico</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>ID do Técnico</Label>
+              <Input
+                value={editingTech?.id || ""}
+                disabled
+                className="bg-muted"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-tech-name">Nome Completo</Label>
+              <Input
+                id="edit-tech-name"
+                value={editTechName}
+                onChange={(e) => setEditTechName(e.target.value)}
+                placeholder="Ex: João Silva"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateTechnician}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
